@@ -1,0 +1,27 @@
+body,html{
+	
+	
+}
+
+
+#game{
+	resize:horizontal;
+}
+#contenedor{
+
+	width: 600px;
+	height: 600px;
+	position: relative;
+	display: block;
+	margin: auto;
+	
+	border:solid;
+	
+	cursor: pointer;
+	background-image: url('tablero.png');
+	background-size: 600px 600px;
+	
+}
+.casillero{
+	float: left;
+}
