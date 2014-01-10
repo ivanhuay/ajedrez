@@ -1,6 +1,10 @@
 //variables globales
+//
+//contiene una imagen para moverla
 var imagen='';
+//el index clickeado cuando la imagen esta vacia
 var anterior='';
+//
 var temp,turno;
 
 
@@ -221,6 +225,7 @@ var Reina=function(posicion,color){
 var Rey=function(posicion,color,enroque){
 	this.movposibles=8;
 	this.mov=['0,1','0,-1','1,0','-1,0','1,1','-1,1','1,-1','-1,-1'];
+	this.enroqueMov=['0,3','0,-4'];
 	this.pos=posicion;
 	this.estado='vivo';
 	this.pospaso="";
@@ -245,7 +250,7 @@ var Rey=function(posicion,color,enroque){
 	this.Mover=function(posicion2){
 		this.pos=posicion2;
 		this.Index=obtener_casilla(this.pos);
-
+		this.enroque=false;
 
 		
 	}
@@ -285,19 +290,28 @@ var arrayPeones=[peon1,peon2];
 var arrayObjetos=[caballo1,caballo2,caballo3,caballo4,alfil1,
 alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2];
 
+/*
+funcion desatada en el click, recibe el index del casillero clickeado y la imagen
+de fondo con background-image
+*/
 function mover(index,entrada){
-
+	//comprueba que la variable imagen este vacia o no
 	if(imagen=='' || imagen=='none'){
+		//guarda la imagen y el index clickeado
 		imagen=entrada;
 		anterior=index;
+		//si la imagen no esta vacia
 		if(imagen!='none'){
+			//cargo temp con la pieza clickeada
 			temp=comprobarPieza(index);
+
 			comprovarPosibles(temp);
 			$('#cuadrado'+anterior).css('background-color','rgba(0,255,0,0.5)');
 			
 		}
 		
-	}else if($('#cuadrado'+index).attr('rojo')=='true'){
+	}else if($('#cuadrado'+index).attr('rojo')=='true')
+	{
 		
 		$('#cuadrado'+anterior).css('background-image','');
 		temp2=comprobarPieza(index);
@@ -317,7 +331,11 @@ function mover(index,entrada){
 	}
 }
 
-//funcion para comprobar que ficha se clickea
+/*
+comprueba que ficha o piesa esta en el casillero clickeado y 
+devuleve la ficha clickeada
+*/
+//comprueba que fichas hay en el index determinado
 function comprobarPieza(index){
 	var ficha;
 	for(var i=0;i<arrayObjetos.length;i++){
@@ -327,48 +345,64 @@ function comprobarPieza(index){
 	return ficha;
 }
 //coloreo los movimientos posibles
+//recive como parametro lapieza clickeada
 function comprovarPosibles(objeto){
+	//guardo el color de la ficha
 	var color=objeto.color;
+	//pongo todos los casilleros en blanco
 	$('.casillero').css('background-color','');
+	//guardo el numero de movimientos posibles
 	var limite= objeto.movposibles;
+	//la ubicacion o index del objeto o fucha
 	var ubi=objeto.Index;
+	//separa la posicion en letra y altura
 	var posicion=objeto.pos.split(',');
 	
-
+	//inicio un for para cada movimiento de la pieza
 	for(var i = 0;i<limite;i++){
+		//seaparo los movimientos posibles en x e y
 		var movi=objeto.mov[i].split(',');
 		var x= LetraX(parseInt(NumX(posicion[0]))+parseInt(movi[0]));
 		var y=parseInt(posicion[1])+parseInt(movi[1]);
 	
 		if(x){
+			//separa al peon al inicio
 			if(objeto.peon){
 				if(i==0||i==3){
+					//el movimiento 0 es el de avanzar
 					if(i==0){
+						//paso x, y ỳ el objeto
+						//chequeo si hay alguna ficha del miso color
+						//y lo colorea
 						chequearSolido(x,y,objeto);
-				var h=1;
-				var colicion=false;
-				while(h<objeto.longMov && colicion==false){
-				
-					x= LetraX(parseInt(NumX(posicion[0]))+h*parseInt(movi[0]));
-					y=parseInt(posicion[1])+h*parseInt(movi[1]);
-					var index=obtener_casillero(x,y);
-					pieza=comprobarPieza(index);
-					if(pieza){
+						var h=1;
+						var colicion=false;
+						//estira el movimiento hasta una colicion o hasta el longmov
+						while(h<objeto.longMov && colicion==false){
+								x= LetraX(parseInt(NumX(posicion[0]))+h*parseInt(movi[0]));
+								y=parseInt(posicion[1])+h*parseInt(movi[1]);
+								var index=obtener_casillero(x,y);
+								pieza=comprobarPieza(index);
+								if(pieza){
 
-					colicion=true;	
-					$('#cuadrado'+index).css('background-color','');
-					
-					}else{
-					$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-					$('#cuadrado'+index).attr('rojo','true');
-					
+								colicion=true;	
+								$('#cuadrado'+index).css('background-color','');
+								
+								}else{
+								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+								$('#cuadrado'+index).attr('rojo','true');
+								
+								}
+								h++;
+							}
 					}
-					h++;
-				}
-					}
-				}else{
+				}else// si el i es 2 o 1| son los movimientos de ataque
+				{
+					//obtengo el index con el x e i
 					var index=obtener_casillero(x,y);
+					//compruebo si existe una pieza en ese index
 					pieza=comprobarPieza(index);
+					//si hay una piez lo colorea
 					if(pieza)
 					{
 
@@ -383,7 +417,9 @@ function comprovarPosibles(objeto){
 							}
 					}else
 					{ 
-						
+						//si no hay una ficha compruebo para todos los peones
+						//si la posicion de paso es igual al index colorea la posicion
+						//esto es para el PEON AL PASO
 						for(var k=0;k<arrayPeones.length;k++)
 						{
 							if(index==obtener_casilla(arrayPeones[k].pospaso))
@@ -396,10 +432,13 @@ function comprovarPosibles(objeto){
 					}
 
 				}
-			}else if(objeto.solido){
+			}else if(objeto.solido) //si no es peon y es solido
+			{
+				//comprueba y colorea las fichas
 				chequearSolido(x,y,objeto);
 				var h=1;
 				var colicion=false;
+				//estira el movimiento en caso de ser alfil
 				while(h<objeto.longMov && colicion==false){
 				
 					x= LetraX(parseInt(NumX(posicion[0]))+h*parseInt(movi[0]));
@@ -416,9 +455,22 @@ function comprovarPosibles(objeto){
 					}
 					h++;
 				}
+				//esto es de prueba para el enroque
+				if(objeto.enroque==true)
+				{
+					console.log( 'enroque posible');
+					/*
+					for(i=0;i<2;i++)
+					{
+						console.log(objeto.enroqueMov[i]);
+					}
+					*/
+				}
 
 			}
-			else{
+			else//si no hay ninguna pieza 
+			{
+				//colorea las posiciones de ataque
 				var index=obtener_casillero(x,y);
 				pieza=comprobarPieza(index);
 				if(pieza){
@@ -433,10 +485,16 @@ function comprovarPosibles(objeto){
 	}
 	
 }
+//recibo la posicion x, la "Y" y el objeto
 function chequearSolido(x,y,objeto){
+	//ejecuto hasta la cantidad de movimientos posibles
 	for(var i=0;i<objeto.longMov;i++){
+		//obtengo el index del casillero con posicion letra-numero
 		var index=obtener_casillero(LetraX(NumX(x)+i),y+i);
+		//comprueba si hay una pieza en el index determinado
 		pieza=comprobarPieza(index);
+		//si la ficha y es del color contrario colorea el cuadrado
+		//si la pieza no existe colorea rojo 
 		if(pieza){
 		if (pieza.color==objeto.color){$('#cuadrado'+index).css('background-color','');}
 		else{$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); $('#cuadrado'+index).attr('rojo','true');}
@@ -446,6 +504,7 @@ function chequearSolido(x,y,objeto){
 		}
 	}
 }
+//transformo x a letra
 function LetraX(para){
 	var letra;
 	if(para==1){letra='A';}
@@ -473,6 +532,7 @@ function NumX(para){
 	if(para=='H'){num='8';}
 	return num;
 }
+//creo los divs que se colorean
 function crear_divs(){
 
 	for( var i=1; i<65;i++){
@@ -490,7 +550,7 @@ function crear_divs(){
 	$('.casillero').css(estilo1);
 
 }
-
+//obtengo la altura con el index del click como parametro
 function obtener_altura(para){
 	var altura;
 	for(var i=0;i<8;i++){
@@ -498,6 +558,7 @@ function obtener_altura(para){
 	}
 	return altura;
 }
+//obtengo la letra con el index del click como parametro
 function obtener_letra(para){
 	var letra;
 	for(var i=0;i<8;i++){
@@ -518,6 +579,7 @@ function obtener_letra(para){
 	}
 	return letra;
 }
+//con x e y como letra y numero obtengo el index del casillero
 function obtener_casillero(x,y){
 	var paso,resu;
 	if(x=='A'){paso='1';}
@@ -531,9 +593,13 @@ function obtener_casillero(x,y){
 	resu=parseInt(paso)+8*(8-y);
 	return resu;
 }
+
+/*con el index del casillero clickeado obtengo la letra y el numero*/
 function obtener_posicion(para){
 	var x,y;
+	//obtengo la letra con el index
 	x=obtener_letra(para);
+	//obtengo la altura con el index
 	y=obtener_altura(para);
 	var resp=x+','+y;
 	return resp;
@@ -545,6 +611,7 @@ function obtener_casilla(pos){
 	return fin;
 }
 
+//dibuja todas las piezas
 function graficarFichas(){
 	
 	for( var i=0; i<arrayObjetos.length;i++){
@@ -553,15 +620,22 @@ function graficarFichas(){
 	
 }
 
+//inicio de todo
 $(document).on('ready',function(){
-crear_divs();
-graficarFichas();
+	//creo los divs que se colorean
+	crear_divs();
+	//dibujo todas las piezas
+	graficarFichas();
 
+	//click de los casilleros
 	$('.casillero').on('click',function(){
 		
+		//obtengo posiciones del casillero clickeado
 		var temp=obtener_posicion($(this).index()+1);
 
+		//carga el casillero clickeado en el cuadro de dialogo
 		$('#dialog p').html(temp);
+		//abre el cuadro de dialogo
 		$( "#dialog" ).dialog();
 
 			mover($(this).index()+1,$(this).css('background-image'));
