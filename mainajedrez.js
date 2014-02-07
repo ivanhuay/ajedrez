@@ -158,6 +158,8 @@ var Torre=function(posicion,color){
 	this.estado='vivo';
 	this.pospaso="";
 	this.solido=true;
+	//para el enroque
+	this.enroque=true
 	this.longMov=8;
 	this.Index=obtener_casilla(this.pos);
 	this.color=color;
@@ -177,7 +179,7 @@ var Torre=function(posicion,color){
 	this.Mover=function(posicion2){
 		this.pos=posicion2;
 		this.Index=obtener_casilla(this.pos);
-
+		this.enroque=false;
 		rey1.Jaque();
 		
 	}
@@ -236,8 +238,16 @@ var Rey=function(posicion,color,enroque){
 	this.enroque=enroque;
 	if(color=='blanco'){
 		this.img='url("imagenes/reyblanco.png")';
+		this.enroqueCorto='H,1';
+		this.enroqueLargo='A,1';
+		this.emptyLargo=Array('B,1','C,1','D,1');
+		this.emptyCorto=Array('F,1','G,1');
 	}else if(color=='negro'){
-		this.img='url("imagenes/reynegro.png")';	
+		this.img='url("imagenes/reynegro.png")';
+		this.enroqueCorto='H,8';
+		this.enroqueLargo='A,8';
+		this.emptyLargo=Array('B,8','C,8','D,8');
+		this.emptyCorto=Array('F,8','G,8');
 	}else{
 		alert('Error al elejir color');
 	}
@@ -269,7 +279,8 @@ var Rey=function(posicion,color,enroque){
 		}
 	}	
 }
-//creo los caballos
+//creo las fichas
+
 var caballo3=new Caballo('B,8','negro');
 var caballo4=new Caballo('G,8','negro');
 var caballo1=new Caballo('B,1','blanco');
@@ -282,13 +293,13 @@ var peon1=new Peon('C,2','blanco');
 var peon2=new Peon('D,7','negro');
 var torre1=new Torre('A,8','negro');
 var torre2=new Torre('H,1','blanco');
-
+var torre3=new Torre('A,1','blanco');
 var reina1=new Reina('D,1','blanco');
 var rey1=new Rey('E,1','blanco',true);
 
 var arrayPeones=[peon1,peon2];
 var arrayObjetos=[caballo1,caballo2,caballo3,caballo4,alfil1,
-alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2];
+alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2,torre3];
 
 /*
 funcion desatada en el click, recibe el index del casillero clickeado y la imagen
@@ -458,7 +469,12 @@ function comprovarPosibles(objeto){
 				//esto es de prueba para el enroque
 				if(objeto.enroque==true)
 				{
-					console.log( 'enroque posible');
+					//console.log( 'enroque posible');
+					var torre=enroquePosible(objeto);
+					if(torre)
+					{
+						console.log('enroque seudo posible');
+					}
 					/*
 					for(i=0;i<2;i++)
 					{
@@ -619,7 +635,33 @@ function graficarFichas(){
 	}
 	
 }
+/*
+	para el enroque voy crear una funcion que devuelva el objeto torre y comprube
+	que no hay piezas intermedias. 
+*/
+//como parametros pasa el rey y todos las fichas no peones son una variable global
+function enroquePosible(rey)
+{
+	var retorno;
+	for(var i=0;i<arrayObjetos.length;i++)
+	{
+		//devuelve solo una pieza, primero la del enroque corto si esta no esta disponible
+		//utiliza el largo
+		if(rey.enroqueCorto==arrayObjetos[i].pos)
+		{
 
+			retorno=(arrayObjetos[i].enroque)? arrayObjetos[i]:false;
+		}else if(rey.enroqueLargo==arrayObjetos[i].pos)
+		{
+			retorno=(arrayObjetos[i].enroque)? arrayObjetos[i]:false;
+		}else
+		{
+			retorno=false;
+		}
+
+	}
+	return retorno;
+}
 //inicio de todo
 $(document).on('ready',function(){
 	//creo los divs que se colorean
