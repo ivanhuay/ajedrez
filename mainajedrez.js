@@ -18,6 +18,7 @@ var Caballo=function(posicion,color){
 	this.estado='vivo';
 	this.Index=obtener_casilla(this.pos);
 	this.color=color;
+	this.tipo='Caballo';
 	if(color=='blanco'){
 		this.img='url("imagenes/caballoblanco.png")';
 	}else if(color=='negro'){
@@ -53,6 +54,7 @@ var Alfil=function(posicion,color){
 	this.longMov=8;
 	this.Index=obtener_casilla(this.pos);
 	this.color=color;
+	this.tipo='Alfil';
 	if(color=='blanco'){
 		this.img='url("imagenes/alfilblanco.png")';
 	}else if(color=='negro'){
@@ -86,6 +88,7 @@ var Peon=function(posicion,color){
 	this.longMov=3;
 	this.estado='vivo';
 	this.peon=true;
+	this.tipo='Peon';
 	this.Index=obtener_casilla(this.pos);
 	this.color=color;
 	if(color=='blanco'){
@@ -159,7 +162,8 @@ var Torre=function(posicion,color){
 	this.pospaso="";
 	this.solido=true;
 	//para el enroque
-	this.enroque=true
+	this.enroque=true;
+	this.tipo='Torre';
 	this.longMov=8;
 	this.Index=obtener_casilla(this.pos);
 	this.color=color;
@@ -198,6 +202,7 @@ var Reina=function(posicion,color){
 	this.solido=true;
 	this.longMov=8;
 	this.Index=obtener_casilla(this.pos);
+	this.tipo='Reina';
 	this.color=color;
 	if(color=='blanco'){
 		this.img='url("imagenes/reinablanca.png")';
@@ -227,7 +232,8 @@ var Reina=function(posicion,color){
 var Rey=function(posicion,color,enroque){
 	this.movposibles=8;
 	this.mov=['0,1','0,-1','1,0','-1,0','1,1','-1,1','1,-1','-1,-1'];
-	this.enroqueMov=['0,3','0,-4'];
+	//esto es otra forma para hacer el enroque
+	this.enroqueMov=['0,3','0,-4'];	
 	this.pos=posicion;
 	this.estado='vivo';
 	this.pospaso="";
@@ -236,12 +242,18 @@ var Rey=function(posicion,color,enroque){
 	this.Index=obtener_casilla(this.pos);
 	this.color=color;
 	this.enroque=enroque;
+	//esto es para diferenciar las piezas
+	this.tipo='Rey';
 	if(color=='blanco'){
 		this.img='url("imagenes/reyblanco.png")';
 		this.enroqueCorto='H,1';
 		this.enroqueLargo='A,1';
-		this.emptyLargo=Array('B,1','C,1','D,1');
-		this.emptyCorto=Array('F,1','G,1');
+		//this.emptyLargo=Array('B,1','C,1','D,1');
+		//aleternativa
+		this.emptyLargo=['-3,0','-2,0','-1,0'];
+		//this.emptyCorto=Array('F,1','G,1');
+		//alternativa
+		this.emptyCorto=['1,0','2,0'];
 	}else if(color=='negro'){
 		this.img='url("imagenes/reynegro.png")';
 		this.enroqueCorto='H,8';
@@ -467,20 +479,22 @@ function comprovarPosibles(objeto){
 					h++;
 				}
 				//esto es de prueba para el enroque
-				if(objeto.enroque==true)
+				if(objeto.enroque==true && objeto.tipo=='Rey')
 				{
 					//console.log( 'enroque posible');
 					var torre=enroquePosible(objeto);
+					
 					if(torre)
 					{
+
+
+						var index=torre.Index;
+						$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+						$('#cuadrado'+index).attr('rojo','true');
+						
 						console.log('enroque seudo posible');
 					}
-					/*
-					for(i=0;i<2;i++)
-					{
-						console.log(objeto.enroqueMov[i]);
-					}
-					*/
+					
 				}
 
 			}
@@ -642,33 +656,61 @@ function graficarFichas(){
 //como parametros pasa el rey y todos las fichas no peones son una variable global
 function enroquePosible(rey)
 {
-	var retorno;
+	var retorno=false;
 	for(var i=0;i<arrayObjetos.length;i++)
 	{
 		//devuelve solo una pieza, primero la del enroque corto si esta no esta disponible
 		//utiliza el largo
+		var posicion=rey.pos.split(',');
 		if(rey.enroqueCorto==arrayObjetos[i].pos)
 		{
+			var lugares=rey.emptyCorto;
+			var pieza=false;
+			for(var j=0;j<lugares.length;j++)
+			{
 
-			retorno=(arrayObjetos[i].enroque)? arrayObjetos[i]:false;
+				var movi=lugares[j].split(',');
+				var x= LetraX(parseInt(NumX(posicion[0]))+parseInt(movi[0]));
+				var y=parseInt(posicion[1])+parseInt(movi[1]);
+				//obtengo el index con el x e i
+				var index=obtener_casillero(x,y);
+				//compruebo si existe una pieza en ese index
+				//uso este pasaje para que no ocurran errores con la variable pieza
+				var pasoPieza=comprobarPieza(index);
+				pieza=(pasoPieza)?pasoPieza:pieza;
+			}
+
+			retorno=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno;		
 		}else if(rey.enroqueLargo==arrayObjetos[i].pos)
 		{
-			retorno=(arrayObjetos[i].enroque)? arrayObjetos[i]:false;
-		}else
-		{
-			retorno=false;
+			var lugares=rey.emptyLargo;
+			var pieza=false;
+			for(var j=0;j<lugares.length;j++)
+			{
+
+				var movi=lugares[j].split(',');
+				var x= LetraX(parseInt(NumX(posicion[0]))+parseInt(movi[0]));
+				var y=parseInt(posicion[1])+parseInt(movi[1]);
+				//obtengo el index con el x e i
+				var index=obtener_casillero(x,y);
+				//compruebo si existe una pieza en ese index
+				var pasoPieza=comprobarPieza(index);
+				pieza=(pasoPieza)?pasoPieza:pieza;
+			}
+			retorno=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno;
 		}
 
 	}
+	console.log('retorno:'+retorno);
 	return retorno;
 }
+/**/
 //inicio de todo
 $(document).on('ready',function(){
 	//creo los divs que se colorean
 	crear_divs();
 	//dibujo todas las piezas
 	graficarFichas();
-
 	//click de los casilleros
 	$('.casillero').on('click',function(){
 		
@@ -681,12 +723,6 @@ $(document).on('ready',function(){
 		$( "#dialog" ).dialog();
 
 			mover($(this).index()+1,$(this).css('background-image'));
-		
-
-
-
 	});
-
-
 });
 
