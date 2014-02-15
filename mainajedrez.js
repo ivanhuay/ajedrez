@@ -248,18 +248,23 @@ var Rey=function(posicion,color,enroque){
 		this.img='url("imagenes/reyblanco.png")';
 		this.enroqueCorto='H,1';
 		this.enroqueLargo='A,1';
+		this.enroqueLargoPos='C,1';
+		this.enroqueCortoPos='G,1';
 		//this.emptyLargo=Array('B,1','C,1','D,1');
 		//aleternativa
 		this.emptyLargo=['-3,0','-2,0','-1,0'];
 		//this.emptyCorto=Array('F,1','G,1');
 		//alternativa
 		this.emptyCorto=['1,0','2,0'];
+
 	}else if(color=='negro'){
 		this.img='url("imagenes/reynegro.png")';
 		this.enroqueCorto='H,8';
 		this.enroqueLargo='A,8';
-		this.emptyLargo=Array('B,8','C,8','D,8');
-		this.emptyCorto=Array('F,8','G,8');
+		this.enroqueLargoPos='C,8';
+		this.enroqueCortoPos='G,8';
+		this.emptyLargo=['-3,0','-2,0','-1,0'];
+		this.emptyCorto=['1,0','2,0'];
 	}else{
 		alert('Error al elejir color');
 	}
@@ -270,6 +275,16 @@ var Rey=function(posicion,color,enroque){
 		
 	}
 	this.Mover=function(posicion2){
+		if(posicion2==this.enroqueLargoPos)
+		{
+			console.log('enroque largo!');
+		}else if(posicion2==this.enroqueCortoPos)
+		{
+			console.log('enroque corto!');
+		}else
+		{
+			console.log('diff:'+posicion2);
+		}
 		this.pos=posicion2;
 		this.Index=obtener_casilla(this.pos);
 		this.enroque=false;
@@ -306,12 +321,13 @@ var peon2=new Peon('D,7','negro');
 var torre1=new Torre('A,8','negro');
 var torre2=new Torre('H,1','blanco');
 var torre3=new Torre('A,1','blanco');
+var torre4=new Torre('H,8','negro')
 var reina1=new Reina('D,1','blanco');
 var rey1=new Rey('E,1','blanco',true);
-
+var rey2=new Rey('E,8','negro',true);
 var arrayPeones=[peon1,peon2];
 var arrayObjetos=[caballo1,caballo2,caballo3,caballo4,alfil1,
-alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2,torre3];
+alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2,torre3,rey2,torre4];
 
 /*
 funcion desatada en el click, recibe el index del casillero clickeado y la imagen
@@ -482,18 +498,21 @@ function comprovarPosibles(objeto){
 				if(objeto.enroque==true && objeto.tipo=='Rey')
 				{
 					//console.log( 'enroque posible');
-					var torre=enroquePosible(objeto);
-					
-					if(torre)
+					var enroque=enroquePosible(objeto);
+					for(var m=0;m<enroque.piezas.length;m++)
 					{
+						if(enroque.piezas[m])
+						{
 
 
-						var index=torre.Index;
-						$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-						$('#cuadrado'+index).attr('rojo','true');
-						
-						console.log('enroque seudo posible');
+							var index=enroque.Index[m];
+							$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+							$('#cuadrado'+index).attr('rojo','true');
+							
+							console.log('enroque seudo posible');
+						}
 					}
+						
 					
 				}
 
@@ -656,7 +675,9 @@ function graficarFichas(){
 //como parametros pasa el rey y todos las fichas no peones son una variable global
 function enroquePosible(rey)
 {
-	var retorno=false;
+	var retorno=Array(false,false);
+	var enroque={};
+	enroque.Index=Array();
 	for(var i=0;i<arrayObjetos.length;i++)
 	{
 		//devuelve solo una pieza, primero la del enroque corto si esta no esta disponible
@@ -664,8 +685,16 @@ function enroquePosible(rey)
 		var posicion=rey.pos.split(',');
 		if(rey.enroqueCorto==arrayObjetos[i].pos)
 		{
+			//para devolver el index en el objeto Json
 			var lugares=rey.emptyCorto;
 			var pieza=false;
+			//uso lugares[1] para el corto
+			enroque.cortoPos=lugares[1];
+			var paso=enroque.cortoPos.split(',');
+			var x= LetraX(parseInt(NumX(posicion[0]))+parseInt(paso[0]));
+			var y=parseInt(posicion[1])+parseInt(paso[1]);
+
+			enroque.Index[0]=obtener_casillero(x,y);
 			for(var j=0;j<lugares.length;j++)
 			{
 
@@ -680,11 +709,21 @@ function enroquePosible(rey)
 				pieza=(pasoPieza)?pasoPieza:pieza;
 			}
 
-			retorno=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno;		
+			retorno[0]=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno[0];		
 		}else if(rey.enroqueLargo==arrayObjetos[i].pos)
 		{
 			var lugares=rey.emptyLargo;
 			var pieza=false;
+
+			//para devolver el index en el objeto Json
+			//uso 
+			enroque.largoPos=lugares[1];
+			//console.log('lugares:'+lugares[1]);
+			var paso=enroque.largoPos.split(',');
+			var x= LetraX(parseInt(NumX(posicion[0]))+parseInt(paso[0]));
+			var y=parseInt(posicion[1])+parseInt(paso[1]);
+			enroque.Index[1]=obtener_casillero(x,y);
+
 			for(var j=0;j<lugares.length;j++)
 			{
 
@@ -697,12 +736,13 @@ function enroquePosible(rey)
 				var pasoPieza=comprobarPieza(index);
 				pieza=(pasoPieza)?pasoPieza:pieza;
 			}
-			retorno=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno;
+			retorno[1]=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno[1];
 		}
 
 	}
-	console.log('retorno:'+retorno);
-	return retorno;
+	//console.log('retorno:'+retorno);
+	enroque.piezas=retorno;
+	return enroque;
 }
 /**/
 //inicio de todo
