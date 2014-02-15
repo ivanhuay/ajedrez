@@ -233,7 +233,8 @@ var Rey=function(posicion,color,enroque){
 	this.movposibles=8;
 	this.mov=['0,1','0,-1','1,0','-1,0','1,1','-1,1','1,-1','-1,-1'];
 	//esto es otra forma para hacer el enroque
-	this.enroqueMov=['0,3','0,-4'];	
+	this.enroqueMov=['0,3','0,-4'];
+	this.piezaEnroque=Array();
 	this.pos=posicion;
 	this.estado='vivo';
 	this.pospaso="";
@@ -263,7 +264,7 @@ var Rey=function(posicion,color,enroque){
 		this.enroqueLargo='A,8';
 		this.enroqueLargoPos='C,8';
 		this.enroqueCortoPos='G,8';
-		this.emptyLargo=['-3,0','-2,0','-1,0'];
+		this.emptyLargo=['-1,0','-2,0','-3,0'];
 		this.emptyCorto=['1,0','2,0'];
 	}else{
 		alert('Error al elejir color');
@@ -278,9 +279,37 @@ var Rey=function(posicion,color,enroque){
 		if(posicion2==this.enroqueLargoPos)
 		{
 			console.log('enroque largo!');
+			
+			var pasotorre=this.piezaEnroque[1];
+			var posicion=pasotorre.pos.split(',');
+			var anterior=obtener_casilla(pasotorre.pos);
+			var movi=[3,0];
+			var x= LetraX(parseInt(NumX(posicion[0]))+parseInt(movi[0]));
+			var y=parseInt(posicion[1])+parseInt(movi[1]);
+				//obtengo el index con el x e i
+			var lugar=x+','+y;
+
+			$('#cuadrado'+anterior).css('background-image','');
+			pasotorre.Mover(lugar);
+			
+			pasotorre.Dibujar();
+
 		}else if(posicion2==this.enroqueCortoPos)
 		{
 			console.log('enroque corto!');
+			var pasotorre=this.piezaEnroque[0];
+			var posicion=pasotorre.pos.split(',');
+			var anterior=obtener_casilla(pasotorre.pos);
+			var movi=[-2,0];
+			var x= LetraX(parseInt(NumX(posicion[0]))+parseInt(movi[0]));
+			var y=parseInt(posicion[1])+parseInt(movi[1]);
+				//obtengo el index con el x e i
+			var lugar=x+','+y;
+
+			$('#cuadrado'+anterior).css('background-image','');
+			pasotorre.Mover(lugar);
+			
+			pasotorre.Dibujar();
 		}else
 		{
 			console.log('diff:'+posicion2);
@@ -653,7 +682,7 @@ function obtener_posicion(para){
 	var resp=x+','+y;
 	return resp;
 }
-
+//devuelve el index aparentemente
 function obtener_casilla(pos){
 	var partes=pos.split(',');
 	var fin=obtener_casillero(partes[0],partes[1]);
@@ -683,6 +712,7 @@ function enroquePosible(rey)
 		//devuelve solo una pieza, primero la del enroque corto si esta no esta disponible
 		//utiliza el largo
 		var posicion=rey.pos.split(',');
+		//primero compruebo el enroquecorto
 		if(rey.enroqueCorto==arrayObjetos[i].pos)
 		{
 			//para devolver el index en el objeto Json
@@ -709,7 +739,12 @@ function enroquePosible(rey)
 				pieza=(pasoPieza)?pasoPieza:pieza;
 			}
 
-			retorno[0]=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno[0];		
+			retorno[0]=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno[0];
+			if(arrayObjetos[i].enroque && !pieza)
+			{
+				//var pasopos=arrayObjetos[i].pos;
+				rey.piezaEnroque[0]=arrayObjetos[i];
+			}		
 		}else if(rey.enroqueLargo==arrayObjetos[i].pos)
 		{
 			var lugares=rey.emptyLargo;
@@ -737,11 +772,17 @@ function enroquePosible(rey)
 				pieza=(pasoPieza)?pasoPieza:pieza;
 			}
 			retorno[1]=(arrayObjetos[i].enroque && !pieza)? arrayObjetos[i]:retorno[1];
+			if(arrayObjetos[i].enroque && !pieza)
+			{
+				//var pasopos=arrayObjetos[i].pos;
+				rey.piezaEnroque[1]=arrayObjetos[i];
+			}	
 		}
 
 	}
 	//console.log('retorno:'+retorno);
 	enroque.piezas=retorno;
+
 	return enroque;
 }
 /**/
