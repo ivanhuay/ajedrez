@@ -35,8 +35,6 @@ var Caballo=function(posicion,color){
 	this.Mover=function(posicion2){
 		this.pos=posicion2;
 		this.Index=obtener_casilla(this.pos);
-		rey1.Jaque();
-		
 	}
 	this.Morir=function(){
 		this.estado='muerto';
@@ -71,8 +69,6 @@ var Alfil=function(posicion,color){
 	this.Mover=function(posicion2){
 		this.pos=posicion2;
 		this.Index=obtener_casilla(this.pos);
-		rey1.Jaque();
-		
 	}
 	this.Morir=function(){
 		this.estado='muerto';
@@ -184,7 +180,7 @@ var Torre=function(posicion,color){
 		this.pos=posicion2;
 		this.Index=obtener_casilla(this.pos);
 		this.enroque=false;
-		rey1.Jaque();
+		
 		
 	}
 	this.Morir=function(){
@@ -325,18 +321,22 @@ var Rey=function(posicion,color,enroque){
 		this.Index='0';
 		this.pos='';
 	}
-	this.Jaque=function(){
+	this.Jaque=function(paramIndex){
+		var jaque=false;
 		for(var i=0;i<arrayObjetos.length;i++)
 		{
 			comprovarPosibles(arrayObjetos[i]);
 		}
-		if($('#cuadrado'+this.Index).attr('rojo')=='true'){
+		if($('#cuadrado'+paramIndex).attr('rojo')=='true'){
 			alert('jaque');
+			jaque=true;
 		}
+		return jaque;
+
 	}	
 }
-//creo las fichas
 
+//creo las fichas
 var caballo3=new Caballo('B,8','negro');
 var caballo4=new Caballo('G,8','negro');
 var caballo1=new Caballo('B,1','blanco');
@@ -364,7 +364,8 @@ de fondo con background-image
 */
 function mover(index,entrada){
 	//comprueba que la variable imagen este vacia o no
-	if(imagen=='' || imagen=='none'){
+	if(imagen=='' || imagen=='none')
+	{
 		//guarda la imagen y el index clickeado
 		imagen=entrada;
 		anterior=index;
@@ -383,7 +384,7 @@ function mover(index,entrada){
 		
 		$('#cuadrado'+anterior).css('background-image','');
 		temp2=comprobarPieza(index);
-		//aca tengo q introducir la diferenciacion para los pones 
+		
 		if(temp2){
 		temp2.Morir();
 		}
@@ -475,13 +476,9 @@ function comprovarPosibles(objeto){
 					{
 
 						if (pieza.color==objeto.color){$('#cuadrado'+index).css('background-color','');}
-						else{
-
-							
-								
+						else{	
 								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 							 	$('#cuadrado'+index).attr('rojo','true');
-							
 							}
 					}else
 					{ 
