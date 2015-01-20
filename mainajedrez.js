@@ -611,7 +611,7 @@ function NumX(para){
 function crear_divs(){
 
 	for( var i=1; i<65;i++){
-	$('#contenedor').append('<div id="cuadrado'+i+'" class="casillero"></div>')
+	$('#contenedor').append('<div id="cuadrado'+i+'" class="chessbox casillero"></div>')
 
 	}
 	 var estilo1={
@@ -622,7 +622,7 @@ function crear_divs(){
 	 	'position':'relative',
 	 	'background-size':'75px 75px'
 	 };
-	$('.casillero').css(estilo1);
+	//$('.casillero').css(estilo1);
 
 }
 //obtengo la altura con el index del click como parametro
