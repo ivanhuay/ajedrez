@@ -77,20 +77,29 @@ var Alfil=function(posicion,color){
 	}
 }
 var Peon=function(posicion,color){
-	this.movposibles=4;
-	
+	this.movposibles=3;
 	this.pos=posicion;
 	this.pospaso="";
-	this.longMov=3;
+	this.longMov=2;
 	this.estado='vivo';
 	this.peon=true;
 	this.tipo='Peon';
 	this.Index=obtener_casilla(this.pos);
 	this.color=color;
+	console.log("New peon:"+obtener_altura(this.Index));
 	if(color=='blanco'){
 		this.img='url("imagenes/peonblanco.png")';
 		this.mov=['0,1','1,1','-1,1','0,2'];
+		if(obtener_altura(this.Index)==2){
+			this.movposibles=4;
+			this.longMov=3;
+		}
+
 	}else if(color=='negro'){
+		if(obtener_altura(this.Index)==7){
+			this.longMov=3;
+			this.movposibles=4;
+		}
 		this.img='url("imagenes/peonnegro.png")';
 		this.mov=['0,-1','-1,-1','1,-1','0,-2'];	
 	}else{
@@ -354,10 +363,71 @@ var torre4=new Torre('H,8','negro')
 var reina1=new Reina('D,1','blanco');
 var rey1=new Rey('E,1','blanco',true);
 var rey2=new Rey('E,8','negro',true);
+var arrayPeones = Array();
+var arrayObjetos = Array();
+
+/*
 var arrayPeones=[peon1,peon2];
 var arrayObjetos=[caballo1,caballo2,caballo3,caballo4,alfil1,
 alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2,torre3,rey2,torre4];
+*/
+/*
+*==================================
+*FUNCION PARA INICIAR EL TABLERO ==
+*==================================
+*/
+//(pawn = "P", knight = "N", bishop = "B", rook = "R", queen = "Q" and king = "K")
+function posicion_inicial(FEN){
+	BorrarTodo();
+	arrayPeones = Array();
+	arrayObjetos = Array();
+	var sections = FEN.split(" ");
+	var lines = sections[0].split("/");
+	var resp = Array();
+	for(var i = 0 ; i < lines.length ; i++){
+		var line = lines[i];
+		var position = 1;
+		for( var j = 0 ; j<line.length ; j++){
+			var pieza = line.slice(j,j+1);
+			console.log(pieza);
+			if(parseInt(pieza)){
+				console.log("!Nan: "+pieza+ " parseInt: "+parseInt(pieza));
+				position+=parseInt(pieza);
+			}else{
+				var code = pieza.toLowerCase();
+				console.log("Nan code: "+code);
 
+				var color = (pieza == pieza.toLowerCase())?"negro":"blanco"; 
+				if(code == "p"){
+					console.log(LetraX(position));
+					var peon = new Peon(LetraX(position)+","+(8-i),color);
+					arrayPeones.push(peon);
+					arrayObjetos.push(peon);
+				}else if( code == "n"){
+					arrayObjetos.push(new Caballo(LetraX(position)+","+(8-i),color));
+				}else if(code == "b"){
+					arrayObjetos.push(new Alfil(LetraX(position)+","+(8-i),color));
+				}else if(code == "r"){
+					arrayObjetos.push(new Torre(LetraX(position)+","+(8-i),color));
+				}else if(code == "q"){
+					arrayObjetos.push(new Reina(LetraX(position)+","+(8-i),color));
+				}else if(code == "k"){
+					arrayObjetos.push(new Rey(LetraX(position)+","+(8-i),color));
+				}
+				position ++;
+			}
+		}
+	}
+	graficarFichas();
+}
+function BorrarTodo(){
+	for(var i in arrayObjetos){
+		arrayObjetos[i].Morir();
+	}
+	for(var i in arrayPeones){
+		arrayPeones[i].Morir();
+	}
+}
 /*
 funcion desatada en el click, recibe el index del casillero clickeado y la imagen
 de fondo con background-image
