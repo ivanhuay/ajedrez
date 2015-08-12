@@ -1,0 +1,17 @@
+[Event "77th Tata Steel GpA"]
+[Site "Wijk aan Zee NED"]
+[Date "2015.01.20"]
+[Round "9"]
+[White "Caruana, F."]
+[Black "Hou Yifan"]
+[Result "1/2-1/2"]
+[ECO "B90"]
+[WhiteElo "2820"]
+[BlackElo "2673"]
+[SetUp "1"]
+[FEN "6k1/5pp1/8/4pq1p/6nP/PP2B1P1/2r1QP2/5RK1 w - - 0 33"]
+[PlyCount "34"]
+[EventDate "2015.01.09"]
+
+33. Qd1 {Black has sacrificed her queenside pawns for an initiative on the queenside. White is tied up, but the pawns are rolling and Black doesn't have a clear threat yet.} Rb2 (33... Nxe3 34. fxe3 Qe4 35. Qf3 Qxf3 36. Rxf3 Rc3 $11 ) 34. Bc5 e4 35. Bd4 Ra2 (35... e3 {again leads to a draw:} 36. fxe3 $1 Rf2 $1 37. a4 Rxf1+ 38. Qxf1 Qc2 39. Qf3 {and Black has nothing more than a perpetual with Qh2+ and moving the queen somewhre on the second rank, threatening Nh2+}) 36. a4 Kh7 {A move that reminds me of Kasparov: always improving the king before looking for final blows.} 37. b4 Ra3 {An interesting idea.} (37... Qd5 38. Bc3 Qf5 $11) 38. a5 $2 (38. Qc2 Qf3 39. a5 Rd3 40. Bb6 Ne5 $13) 38... Rf3 $2 (38... Rd3 $1 {This move is a winner!} 39. Qa1 Qf3 {threatening e3.} 40. Qb2 $8 g5 $1 {Black's attack on the kingside is too fast and too strong. White collapses.} 41. Bh8 (41. hxg5 h4 42. gxh4 Qf4 $1 $19) (41. a6 gxh4 42. a7 h3 { is too slow for White.}) 41... f6 $19) 39. Qb1 Rd3 40. Qb2 Qd5 41. Bc5 $6 (41. Be3 {is worse for White, but survivable.}) 41... Ne5 (41... f5 $1 {Black threatens e3.} 42. a6 e3 43. fxe3 Rd2 {and there is no check on b1.}) (41... e3 42. fxe3 Rd2 43. Qb1+ Kg8 44. e4 Qc4 45. Rd1 $11) 42. Be3 (42. a6 Nf3+ 43. Kh1 e3 $1 $19) 42... Nf3+ (42... f5 $1 {This move first! It would have prevented the counterplay in the game.} 43. Rc1 f4 44. Bxf4 Nf3+ 45. Kf1 (45. Kg2 e3 $19 46. Bxe3 Nxh4+ 47. Kh3 Qg2+ 48. Kxh4 Kg6 $3 {And White is helpless against Qh2 mate. A very difficult thing to see, for sure.}) 45... Rd1+ 46. Kg2 Ne1+ 47. Kh2 e3 $1 48. Qb1+ Kg8 49. Rc8+ Kf7 50. Rc7+ Ke8 $1 51. Qg6+ Kd8 $19) 43. Kg2 f5 44. Rc1 $1 {The only move. White's counterplay hits right on time to save him.} f4 45. Rc7 Nxh4+ $1 {Black is also right on time to force a draw.} 46. gxh4 (46. Kh2 fxg3+ 47. fxg3 Nf5 $19) 46... f3+ 47. Kg3 Qd6+ 48. Bf4 Qg6+ 49. Bg5 Qd6+ {A fascinating draw.} 1/2-1/2
+

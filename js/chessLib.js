@@ -628,6 +628,7 @@ var Tablero = function(container){
 			}
 		}
 	}
+	//TODO:readpgn function -- to read pgn files in init and make start position 
 }
 
 
