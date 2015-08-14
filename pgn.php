@@ -44,7 +44,8 @@ if(file_exists($fileName)){
 			$key = strtolower($separators[0]);
 			
 			$value = $separators[1];
-			
+			$value = trim($value,"\"");
+
 			$data[$key] = $value;
 		
 		}else if(trim($line) != ""){

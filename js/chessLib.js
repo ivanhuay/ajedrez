@@ -54,7 +54,6 @@ var Alfil=function(posicion,color){
 		alert('Error al elejir color');
 	}
 }
-	
 var Peon=function(posicion,color){
 	this.longMov=3;
 	this.peon=true;
@@ -254,7 +253,9 @@ var Tablero = function(container){
 	var anterior='';
 	//
 	var temp,turno;
-	//datos anteriores para crear las fichas 
+	this.pgn = {};
+	//datos anteriores para crear las fichas
+	/* 
 	var caballo3=new Caballo('B,8','negro');
 	var caballo4=new Caballo('G,8','negro');
 	var caballo1=new Caballo('B,1','blanco');
@@ -276,7 +277,9 @@ var Tablero = function(container){
 
 	this.arrayObjetos=[caballo1,caballo2,caballo3,caballo4,alfil1,
 	alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2,torre3,rey2,torre4];
-
+	*/
+	this.arrayPeones=[];
+	this.arrayObjetos=[];
 	this.contenedor = $(container);
 
 	//CARGO EL EVENTO PARA LAS FICHAS 
@@ -620,16 +623,115 @@ var Tablero = function(container){
 			//si la ficha y es del color contrario colorea el cuadrado
 			//si la pieza no existe colorea rojo 
 			if(pieza){
-			if (pieza.color==objeto.color){$('#cuadrado'+index).css('background-color','');}
-			else{$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); $('#cuadrado'+index).attr('rojo','true');}
+				if (pieza.color==objeto.color){
+					$('#cuadrado'+index).css('background-color','');
+				}else{
+					$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); 
+					$('#cuadrado'+index).attr('rojo','true');
+				}
 			}else{
-			$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-			$('#cuadrado'+index).attr('rojo','true');
+				$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+				$('#cuadrado'+index).attr('rojo','true');
 			}
 		}
 	}
-	//TODO:readpgn function -- to read pgn files in init and make start position 
-}
+	//example usage -> tab.getpgn("http://localhost/ajedrez/pgn.php");
+	this.getpgn = function(url){
+		var pasothis = this;
+		$.ajax({
+			url:url,
+			success:function(resp){
+				console.log("load pgn sucess");
+				pasothis.pgn = resp;
+				pasothis.readfen(pasothis.pgn.fen);
+			},
+			error:function(jqHXR,error,status){
+				console.log(error);
+				console.log(status);
+
+			}
+		});
+	}
+	//function to read and graph fen from pgn
+	this.readfen = function(fullfen){
+		if( typeof fen == "undefined"){
+			fullfen = this.pgn.fen;
+		}
+		
+		fullfen = fullfen.split(" ");
+		
+		var fen = fullfen[0];
+
+		var filas = fen.split("/");
+		console.log(filas);
+		var piezaIndex = 1 ; 
+		for(var i = 0; i <filas.length ; i++){
+			var linea = filas[i];
+			for(j = 0 ; j < linea.length; j++){
+
+ 				var character = linea[j];
+ 				
+ 				if(/[0-9]/.test(linea[j])){
+ 				
+ 					piezaIndex+=parseInt(linea[j]);
+ 				
+ 				}else{
+ 				
+
+ 					if(/[A-Z]/.test(linea[j])){
+ 					
+ 						color = "blanco";
+ 					
+ 					}else{
+ 					
+ 						color = "negro"
+ 					
+ 					}
+
+ 					var pos = Analizer.obtener_posicion(piezaIndex);
+ 					
+ 					tipo = false;
+
+ 					switch(linea[j].toLowerCase()){
+ 						case 'k'://rey-king
+ 							tipo = "Rey";
+ 							break;
+ 						case 'p'://peon
+ 							tipo = "Peon"
+ 							break;
+ 						case 'q'://reina-queen
+ 							tipo = "Reina";
+ 							break;
+ 						case 'n'://caballo
+ 							tipo = "Caballo";
+ 							break;
+ 						case 'b'://alfil-bishop
+ 							tipo = "Alfil";
+ 							break;
+ 						case 'r'://torre
+ 							tipo = "Torre";
+ 							break;
+ 					}
+ 					console.log("index: "+piezaIndex+" nueva pieza: "+tipo+" pos --> "+pos );
+ 					
+ 					var pieza = new window[tipo](pos,color);
+ 					
+ 					if(tipo == "Peon"){
+ 					
+ 						this.arrayPeones.push(pieza);
+ 					
+ 					}
+ 					
+ 					this.arrayObjetos.push(pieza);
+
+ 					piezaIndex++;
+
+ 				}
+ 				this.graficarFichas();
+			}
+		}
+	}
+}	
 
 
 /*
