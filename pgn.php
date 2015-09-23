@@ -47,7 +47,15 @@ if(file_exists($fileName)){
 			$value = trim($value,"\"");
 
 			$data[$key] = $value;
-		
+			//separo el fen, por los turnos
+			if(count($separators) > 2){
+				for($i = 2; $i < count($separators) ; $i++){
+					
+					$data[$key] .= " ".$separators[$i];
+
+				}
+			}
+
 		}else if(trim($line) != ""){
 			
 			$data["pgn"] = $line;

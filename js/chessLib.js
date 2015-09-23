@@ -247,37 +247,21 @@ var Rey=function(posicion,color,enroque){
 *==============================================================
 */
 var Tablero = function(container){
+	//variables
 	//contiene una imagen para moverla
 	var imagen='';
 	//el index clickeado cuando la imagen esta vacia
 	var anterior='';
 	//
-	var temp,turno;
-	this.pgn = {};
-	//datos anteriores para crear las fichas
-	/* 
-	var caballo3=new Caballo('B,8','negro');
-	var caballo4=new Caballo('G,8','negro');
-	var caballo1=new Caballo('B,1','blanco');
-	var caballo2=new Caballo('G,1','blanco');
-	var alfil1=new Alfil('C,1','blanco');
-	var alfil2=new Alfil('F,1','blanco');
-	var alfil3=new Alfil('C,8','negro');
-	var alfil4=new Alfil('F,8','negro');
-	var peon1=new Peon('C,2','blanco');
-	var peon2=new Peon('D,7','negro');
-	var torre1=new Torre('A,8','negro');
-	var torre2=new Torre('H,1','blanco');
-	var torre3=new Torre('A,1','blanco');
-	var torre4=new Torre('H,8','negro')
-	var reina1=new Reina('D,1','blanco');
-	var rey1=new Rey('E,1','blanco',true);
-	var rey2=new Rey('E,8','negro',true);
-	this.arrayPeones=[peon1,peon2];
+	var temp;
 
-	this.arrayObjetos=[caballo1,caballo2,caballo3,caballo4,alfil1,
-	alfil2,alfil3,alfil4,peon1,peon2,torre1,reina1,rey1,torre2,torre3,rey2,torre4];
-	*/
+	this.turno;//save turn
+	
+	this.pgn = {};
+	
+	this.procesPgn = {};
+
+	
 	this.arrayPeones=[];
 	this.arrayObjetos=[];
 	this.contenedor = $(container);
@@ -384,7 +368,11 @@ var Tablero = function(container){
 		
 	//coloreo los movimientos posibles
 	//recive como parametro lapieza clickeada
+	//devuelvo array con todas las posiciones posibles en texto
 	this.comprovarPosibles = function (objeto){
+		
+		var arrayPosiblesTexto = [];//para cargar los movimientos en texto
+
 		//guardo el color de la ficha
 		var color=objeto.color;
 		//pongo todos los casilleros en blanco
@@ -402,7 +390,6 @@ var Tablero = function(container){
 			var movi=objeto.mov[i].split(',');
 			var x= Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+parseInt(movi[0]));
 			var y=parseInt(posicion[1])+parseInt(movi[1]);
-		
 			if(x){
 				//separa al peon al inicio
 				if(objeto.peon){
@@ -419,6 +406,7 @@ var Tablero = function(container){
 							while(h<objeto.longMov && colicion==false){
 									x= Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+h*parseInt(movi[0]));
 									y=parseInt(posicion[1])+h*parseInt(movi[1]);
+									arrayPosiblesTexto.push(x+y);
 									var index=Analizer.obtener_casillero(x,y);
 									pieza=this.comprobarPieza(index);
 									if(pieza){
@@ -436,18 +424,21 @@ var Tablero = function(container){
 						}
 					}else{// si el i es 2 o 1| son los movimientos de ataque
 						//obtengo el index con el x e i
+
 						var index=Analizer.obtener_casillero(x,y);
 						//compruebo si existe una pieza en ese index
 						pieza=this.comprobarPieza(index);
 						//si hay una piez lo colorea
 						if(pieza)
 						{
-
-							if (pieza.color==objeto.color){$('#cuadrado'+index).css('background-color','');}
-							else{	
-									$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-								 	$('#cuadrado'+index).attr('rojo','true');
-								}
+							if (pieza.color==objeto.color){
+								$('#cuadrado'+index).css('background-color','');
+							}else{	
+								arrayPosiblesTexto.push(x+y);
+								console.log("Pieza especifica: "+x+y);
+								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+							 	$('#cuadrado'+index).attr('rojo','true');
+							}
 						}else
 						{ 
 							//si no hay una ficha compruebo para todos los peones
@@ -457,9 +448,11 @@ var Tablero = function(container){
 							{
 								if(index==Analizer.obtener_casilla(this.arrayPeones[k].pospaso))
 								{
-								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-								 $('#cuadrado'+index).attr('rojo','true');
-								 $('#cuadrado'+index).attr('peonpaso',this.arrayPeones[k].pospaso);
+									arrayPosiblesTexto.push(x+y);
+
+									$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+								 	$('#cuadrado'+index).attr('rojo','true');
+									$('#cuadrado'+index).attr('peonpaso',this.arrayPeones[k].pospaso);
 								}
 							}
 						}
@@ -475,15 +468,27 @@ var Tablero = function(container){
 					
 						x= Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+h*parseInt(movi[0]));
 						y=parseInt(posicion[1])+h*parseInt(movi[1]);
+						
+						//arrayPosiblesTexto.push(x+y);
+
 						var index=Analizer.obtener_casillero(x,y);
 						pieza=this.comprobarPieza(index);
-						if(pieza){
-						colicion=true;	
-						if (pieza.color==objeto.color){$('#cuadrado'+index).css('background-color','');}
-						else{$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); $('#cuadrado'+index).attr('rojo','true');}
-						}else{
-						$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-						$('#cuadrado'+index).attr('rojo','true');
+						if(index && index>=1 && index <= 64){
+							//arrayPosiblesTexto.push(index);
+							if(pieza){
+								colicion=true;	
+								if (pieza.color==objeto.color){
+									$('#cuadrado'+index).css('background-color','');
+								}else{
+									arrayPosiblesTexto.push(x+y);
+									$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+									$('#cuadrado'+index).attr('rojo','true');
+								}
+							}else{
+								arrayPosiblesTexto.push(x+y);
+								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+								$('#cuadrado'+index).attr('rojo','true');
+							}
 						}
 						h++;
 					}
@@ -511,18 +516,25 @@ var Tablero = function(container){
 
 				}else{//si no hay ninguna pieza
 					//colorea las posiciones de ataque
+					//arrayPosiblesTexto.push(x+y);
 					var index=Analizer.obtener_casillero(x,y);
 					pieza=this.comprobarPieza(index);
+					arrayPosiblesTexto.push(x+y);
 					if(pieza){
-					if (pieza.color==objeto.color){$('#cuadrado'+index).css('background-color','');}
-					else{$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); $('#cuadrado'+index).attr('rojo','true');}
+						if (pieza.color==objeto.color){
+							$('#cuadrado'+index).css('background-color','');
+						}else{
+							$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); $('#cuadrado'+index).attr('rojo','true');
+						}
 					}else{
-					$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-					$('#cuadrado'+index).attr('rojo','true');
+
+						$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+						$('#cuadrado'+index).attr('rojo','true');
 					}
 				}
 			}
 		}
+		return arrayPosiblesTexto;
 		
 	}
 	/*
@@ -644,6 +656,7 @@ var Tablero = function(container){
 				console.log("load pgn sucess");
 				pasothis.pgn = resp;
 				pasothis.readfen(pasothis.pgn.fen);
+				pasothis.readPgnMoves(pasothis.pgn.pgn);
 			},
 			error:function(jqHXR,error,status){
 				console.log(error);
@@ -659,7 +672,15 @@ var Tablero = function(container){
 		}
 		
 		fullfen = fullfen.split(" ");
-		
+		console.log(fullfen);
+		//cargo turno
+		var turno = fullfen[1];
+		if(turno == "w"){
+			this.turno = "w";
+		}else{
+			this.turno = "b";//revisar si es lo correcto
+		}
+
 		var fen = fullfen[0];
 
 		var filas = fen.split("/");
@@ -730,6 +751,188 @@ var Tablero = function(container){
  				this.graficarFichas();
 			}
 		}
+	},
+	this.readPgnMoves = function(onlypgn){
+		
+		//TODO: mapear pgn
+		//guardar comentarios y reemplazar en la cadena por un item
+		//guardar variaciones y reemplazar en la cadena por un item
+		//identificar los movimientos y reepresantarlos ordenadamente
+		
+		var orderPgn = onlypgn; //guardo la cadena para modificarla despues
+
+		var comentarios = onlypgn.match(/\{.*?\}/g);//guardo los comentarios
+		//remplazo comentarios
+		for(var i = 0 ; i < comentarios.length ; i ++){
+			orderPgn = orderPgn.replace(comentarios[i],"_ca_"+i);
+		}
+
+		//var variaciones = orderPgn.match(/\(.*?\)/g);//guardo variaciones
+		var variaciones = orderPgn.match(/(\([^()]*)*(\s*\([^()]*\)\s*)+([^()]*\))*/g);
+		for( var m = 0; m < variaciones.length ; m++){
+			variaciones[m] = variaciones[m].trim();
+		}
+		console.log("variaciones");
+		console.log(variaciones[4]);
+		//TODO: algunas variaciones son tomadas mal		
+		//remplazo variaciones
+		for(var i = 0 ; i < variaciones.length ; i ++){
+			orderPgn = orderPgn.replace(variaciones[i],"_va_"+i);
+		}
+		var arrayOrderPgn = orderPgn.split(" ");
+		
+		var resultado = arrayOrderPgn[arrayOrderPgn.length-1];
+		console.log("RESULTADO: "+resultado);
+		
+		if(!/[a-z]|[A-Z]/.test(resultado) ){
+			resultado = arrayOrderPgn[arrayOrderPgn.length-1];
+			arrayOrderPgn.splice(arrayOrderPgn.length-1,1);
+		}
+
+
+		console.log(arrayOrderPgn);
+		
+		this.procesPgn = {
+			orderPgn : arrayOrderPgn,
+			comentarios: comentarios,
+			variaciones:variaciones,
+			result: resultado,
+			indexMove : -1
+		}
+	}
+	this.nextPgnMove = function(){
+		this.procesPgn.indexMove++;
+		console.log(this.procesPgn.indexMove+" from testPgn "+this.procesPgn.orderPgn.length);
+		console.log("Move detail:"+this.procesPgn.orderPgn[this.procesPgn.indexMove])
+		while(this.procesPgn.indexMove < this.procesPgn.orderPgn.length && this.testPgnMove(this.procesPgn.orderPgn[this.procesPgn.indexMove]) == false){
+			this.procesPgn.indexMove++;
+		}
+		if(this.procesPgn.indexMove >= this.procesPgn.orderPgn.length){
+			console.log("Fin de los movimientos");
+			return 0;
+		}
+
+		var indexMove = this.procesPgn.indexMove;
+		var move = 	this.procesPgn.orderPgn[indexMove];
+
+		console.log(move);
+		console.log(indexMove+" from :"+this.procesPgn.orderPgn.length);
+		//compruebo si es mayucula para definir el color
+		var color,casilla,numero,pieza;
+
+		//color definido por el turno
+		
+		if(this.turno == "w"){
+			color = "blanco";
+			this.turno = "b";
+		}else{
+			color = "negro";
+			this.turno = "w";
+		}
+
+		pieza = move[0];
+		
+		var casillaIndex = 1;
+		
+		if(!/[A-Z]/.test(pieza)){
+			casillaIndex = 0;
+			if(move[casillaIndex+1]=="x")casillaIndex++;//una solucion parcial para el problema con el f o g para los peones
+			pieza = "P";
+		}
+
+		//para los de comer
+		if(move[casillaIndex]=="x")casillaIndex++;
+
+		if(/[a-h]/.test(move[casillaIndex])){
+			casilla = move[casillaIndex].toUpperCase();
+		}else{
+			$.error("Error al identificar casilla: "+move[casillaIndex]+" move: "+move);
+		}
+
+		if(1<=move[casillaIndex+1]<=8){
+			numero = move[casillaIndex+1];
+		}else{
+			$.error("Error al identificar casilla: "+move[casillaIndex+1]);	
+		}
+		var tipoPieza;
+		switch(pieza){
+			case "Q":
+				tipoPieza = "Reina";
+			break;
+			case "K":
+				tipoPieza = "Rey";
+			break;
+			case "R":
+				tipoPieza = "Torre";
+			break;
+			case "B":
+				tipoPieza = "Alfil";
+			break;
+			case "N":
+				tipoPieza = "Caballo";
+			break;
+			case "P":
+				tipoPieza = "Peon";
+			break;
+			case "all":
+				tipoPieza = "all";
+			break;
+			default:
+
+				$.error("Error al obtener pieza.");
+			break;
+		}
+		console.log(tipoPieza+" color:"+color);
+		var graficado  = false;//bandera
+		for( var j = 0; j < this.arrayObjetos.length; j++){
+			var piezaObj = this.arrayObjetos[j];
+			if(!graficado && piezaObj.color== color && (piezaObj.tipo == tipoPieza || tipoPieza=="all")){
+				var posibles = this.comprovarPosibles(piezaObj);
+				console.log(posibles);
+				for(var i in posibles){
+					if(posibles[i] == casilla+numero){
+						
+						var index=Analizer.obtener_casillero(casilla,numero);
+						
+						piezaPaso=this.comprobarPieza(index);
+						
+						if(piezaPaso)piezaPaso.Morir();
+						
+						$('#cuadrado'+piezaObj.Index).css('background-image',"");
+						
+						piezaObj.Mover(casilla+","+numero);
+						
+						piezaObj.Dibujar();
+						
+						$('.casillero').css('background-color','');
+						
+						$('.casillero').attr('rojo','');
+						
+						//mejorar movimientos
+						graficado = true;
+						break;
+					}
+				}
+			}
+		}
+		
+	}
+	this.testPgnMove = function(moveText){
+		console.log("inside move: "+moveText);
+
+		if(moveText.match(/\d+\./g)!= null){
+			return false;
+		}
+		if(moveText.match(/_ca_\d+/)!=null){
+			return false;
+		}
+		if(moveText.match(/_va_\d+/)!=null){
+			return false;
+		}
+		if(moveText[0] == "$"){
+			return false;
+		}
+		return true;
 	}
 }	
 
@@ -836,5 +1039,5 @@ $(document).on("ready",function (e){
 	tab = new Tablero('#contenedor');
 	tab.crear_divs();
 	tab.graficarFichas();
-
+	tab.getpgn("http://localhost/ajedrez/pgn.php");
 });
