@@ -310,7 +310,7 @@ var Tablero = function(container){
 		
 	}
 	//funciones para el movimiento dentro de el objeto tablero
-
+	//TODO:no me queda claro que hace esta funcion, estaria faltando una mejor aclaracion comentada
 	/*
 	funcion desatada en el click, recibe el index del casillero clickeado y la imagen
 	de fondo con background-image
@@ -624,6 +624,7 @@ var Tablero = function(container){
 
 		return enroque;
 	}
+	//estiro una posicion para alargar el movimiento por ejemplo para un alfil
 	//recibo la posicion x, la "Y" y el objeto
 	this.chequearSolido = function (x,y,objeto){
 		//ejecuto hasta la cantidad de movimientos posibles
@@ -665,6 +666,7 @@ var Tablero = function(container){
 			}
 		});
 	}
+
 	//function to read and graph fen from pgn
 	this.readfen = function(fullfen){
 		if( typeof fen == "undefined"){
@@ -751,6 +753,58 @@ var Tablero = function(container){
  				this.graficarFichas();
 			}
 		}
+	},
+	//TODO: funcion para capturar el fen de la posicion actual
+	//TODO: solucionar bugs para capturar fen
+	this.takeFen = function(){
+		var contFila = 0;//contador para espacios por fila
+		var lines = [];
+		for( var i = 1; i <=64 ; i ++){
+			if((i-1)%8 == 0){
+				if(contFila != 0){
+					console.log("sucedio: "+contFila);
+					lines[Math.floor((i-2)/8)]+=contFila.toString();
+					console.log("i: "+i+" - Index: "+Math.floor((i-2)/8)+" --> "+lines[Math.floor((i-2)/8)]);	
+				}
+				contFila = 0;
+				lines[Math.floor(i/8)]="";
+			}
+			var pieza = this.comprobarPieza(i);
+			if(!pieza){
+				contFila ++;
+			}else{
+				if(contFila!=0){
+					lines[Math.floor(i/8)]+=contFila.toString(); 
+				}
+				lines[Math.floor(i/8)]+=this.piezaTipoToFen(pieza.tipo);
+				contFila = 0; 
+			}
+		}
+		return lines;
+	},
+	this.piezaTipoToFen = function(tipo){
+		var letra = false;
+		switch(tipo){
+			case 'Rey'://rey-king
+				letra = 'k';
+				break;
+			case 'Peon'://peon
+				letra = 'p';
+				break;
+			case 'Reina'://reina-queen
+				letra = 'q';
+				break;
+			case 'Caballo'://caballo
+				letra = 'n';
+				break;
+			case 'Alfil'://alfil-bishop
+				letra = 'b';
+				break;
+			case 'Torre'://torre
+				letra = "r";
+				break;
+		}
+		return letra;
 	},
 	this.readPgnMoves = function(onlypgn){
 		
@@ -959,32 +1013,32 @@ var PositionAnalisis = function(){
 		}
 		return letra;
 	}
-	this.NumX = function (para){
+	this.NumX = function (letra){
 		var num;
-		if(para=='A'){num='1';}
-		if(para=='B'){num='2';}
-		if(para=='C'){num='3';}
-		if(para=='D'){num='4';}
-		if(para=='E'){num='5';}
-		if(para=='F'){num='6';}
-		if(para=='G'){num='7';}
-		if(para=='H'){num='8';}
+		if(letra=='A'){num='1';}
+		if(letra=='B'){num='2';}
+		if(letra=='C'){num='3';}
+		if(letra=='D'){num='4';}
+		if(letra=='E'){num='5';}
+		if(letra=='F'){num='6';}
+		if(letra=='G'){num='7';}
+		if(letra=='H'){num='8';}
 		return num;
 	}
 	//obtengo la altura con el index del click como parametro
-	this.obtener_altura = function (para){
+	this.obtener_altura = function (index){
 		var altura;
 		for(var i=0;i<8;i++){
-			if(para >=(1+8*i) && para <=(8+8*i)){altura= 8-i;}
+			if(index >=(1+8*i) && index <=(8+8*i)){altura= 8-i;}
 		}
 		return altura;
 	}
 	//obtengo la letra con el index del click como parametro
-	this.obtener_letra = function (para){
+	this.obtener_letra = function (index){
 		var letra;
 		for(var i=0;i<8;i++){
 
-			if(((para+i)/8)-parseInt((para+i)/8)==0){
+			if(((index+i)/8)-parseInt((index+i)/8)==0){
 
 				if(i==7){letra='A';}
 				if(i==6){letra='B';}
@@ -1000,26 +1054,19 @@ var PositionAnalisis = function(){
 	}
 	//con x e y como letra y numero obtengo el index del casillero
 	this.obtener_casillero = function (x,y){
-		var paso,resu;
-		if(x=='A'){paso='1';}
-		if(x=='B'){paso='2';}
-		if(x=='C'){paso='3';}
-		if(x=='D'){paso='4';}
-		if(x=='E'){paso='5';}
-		if(x=='F'){paso='6';}
-		if(x=='G'){paso='7';}
-		if(x=='H'){paso='8';}
+		var paso,resu;	
+		paso = this.NumX(x);
 		resu=parseInt(paso)+8*(8-y);
 		return resu;
 	}
 
 	/*con el index del casillero clickeado obtengo la letra y el numero*/
-	this.obtener_posicion = function (para){
+	this.obtener_posicion = function (index){
 		var x,y;
 		//obtengo la letra con el index
-		x=this.obtener_letra(para);
+		x=this.obtener_letra(index);
 		//obtengo la altura con el index
-		y=this.obtener_altura(para);
+		y=this.obtener_altura(index);
 		var resp=x+','+y;
 		return resp;
 	}
