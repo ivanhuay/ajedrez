@@ -1,298 +1,19 @@
-/*
-*==================================
-*Declaracion de objetos piezas ====
-*==================================
-*/
-var Pieza = function (movimientos,posicion,color, tipo, self){
-	this.movposibles=movimientos.length;
-	this.mov=movimientos;
-	this.pos=posicion;
-	this.pospaso="";
-	this.estado='vivo';
-	this.Index=Analizer.obtener_casilla(this.pos);
-	this.color=color;
-	this.tipo=tipo;
+/*Module Dependencies*/
+var Pieza = require('../piezas/Pieza'),
+	Caballo = require('../piezas/Caballo'),
+	Peon = require('../piezas/Peon'),
+	Reina = require('../piezas/Reina'),
+	Rey = require('../piezas/Rey'),
+	Torre = require('../piezas/Torre'),
+	Analizer = require('./Analizer');
 
-	this.Dibujar= function(){
-		
-		$('#cuadrado'+this.Index).css('background-image',this.img);
-		
-	}
-	this.Mover=function(posicion2){
-		this.tabMove(posicion2);//dev function
-		this.pos=posicion2;
-		this.Index=Analizer.obtener_casilla(this.pos);
-	}
-	this.Morir=function(){
-		this.estado='muerto';
-		this.Index='0';
-		this.pos='';
-	}
-	this.tabMove = function(newpos){
-		var indice = Analizer.obtener_casilla(newpos),
-			indiceAnterior = Analizer.obtener_casilla(this.pos);
-		//borro del tablero la posicion anterior
-		self.tablero[indiceAnterior].pieza = null;
-		self.tablero[indiceAnterior].imagen = "";
-		//cargo la posicion actual en el tablero
-		self.tablero[indice].pieza = this;
-		self.tablero[indice].imagen = this.img;
-	}
-}
-var Caballo=function(posicion,color,self){
-	var pieza = new Pieza(['2,1','2,-1','-2,1','-2,-1','1,2','1,-2','-1,2','-1,-2'],posicion,color,"Caballo",self);
-	$.extend(this,pieza)
-	
-	if(color=='blanco'){
-		this.img='url("imagenes/caballoblanco.png")';
-	}else if(color=='negro'){
-		this.img='url("imagenes/caballonegro.png")';	
-	}else{
-		alert('Error al elejir color');
-	}
-	
-	//dev
-	self.tablero[this.Index].pieza = this;
-	self.tablero[this.Index].img = this.img;
-}
-var Alfil=function(posicion,color,self){
-	var pieza = new Pieza(['1,1','-1,1','1,-1','-1,-1'],posicion,color,'Alfil',self);
-	$.extend(this,pieza)
-
-	this.solido=true;
-	this.longMov=8;
-	
-	if(color=='blanco'){
-		this.img='url("imagenes/alfilblanco.png")';
-	}else if(color=='negro'){
-		this.img='url("imagenes/alfilnegro.png")';	
-	}else{
-		alert('Error al elejir color');
-	}
-	
-	//dev
-	self.tablero[this.Index].pieza = this;
-	self.tablero[this.Index].img = this.img;
-}
-var Peon=function(posicion,color,self){
-	this.longMov=3;
-	this.peon=true;
-	if(color=='blanco'){
-		this.img='url("imagenes/peonblanco.png")';
-		this.mov=['0,1','1,1','-1,1','0,2'];
-	}else if(color=='negro'){
-		this.img='url("imagenes/peonnegro.png")';
-		this.mov=['0,-1','-1,-1','1,-1','0,-2'];	
-	}else{
-		alert('Error al elejir color');
-	}
-	var pieza = new Pieza(this.mov,posicion,color,'Peon',self);
-	$.extend(this,pieza);
-	//dev
-	self.tablero[this.Index].pieza = this;
-	self.tablero[this.Index].img = this.img;
-
-
-	this.Mover=function(posicion2){
-		//TODO:emprolijar esta funcion
-		this.tabMove(posicion2);//dev function
-
-		if (this.movposibles==4){
-			this.intPeon(posicion2);
-		}else{
-			this.pospaso="";
-		}
-		this.movposibles=3;
-		this.longMov=2;
-		this.pos=posicion2;
-		this.Index=Analizer.obtener_casilla(this.pos);
-		var temporal=$('#cuadrado'+this.Index).attr('peonpaso');
-		if( temporal!=undefined){
-			
-			var temporal2=Analizer.obtener_casilla(temporal);
-			var temalt=Analizer.obtener_altura(temporal2);
-			var temal2;
-			if(temalt==3){temal2=4;}else{temal2=5;}
-			var letratemp = Analizer.obtener_letra(temporal2);
-			var postemp= Analizer.obtener_casilla(letratemp+","+temal2)
-			
-			var obj=self.comprobarPieza(postemp);
-			$('#cuadrado'+(obj.Index)).css('background-image','');
-			obj.Morir();
-		}
-		
-	}
-	this.intPeon= function(para){
-		var indexp=Analizer.obtener_casilla(para);
-		var alturap=Analizer.obtener_altura(indexp);
-		var letrap=Analizer.obtener_letra(indexp);
-		var alturatemp;
-		if(this.color=="blanco"){alturatemp=3}else{
-			alturatemp=6;
-		}
-		if (alturap==4 || alturap==5){
-			this.pospaso=letrap+","+alturatemp;
-		}
-	}
-}
-var Torre=function(posicion,color,self){
-	
-	var pieza = new Pieza(['0,1','0,-1','1,0','-1,0'],posicion,color,'Torre',self);
-	$.extend(this,pieza)
-
-	//para el enroque
-	this.solido=true;
-	this.enroque=true;
-	this.longMov=8;
-	
-	if(color=='blanco'){
-		this.img='url("imagenes/torreblanca.png")';
-	}else if(color=='negro'){
-		this.img='url("imagenes/torrenegra.png")';	
-	}else{
-		alert('Error al elejir color');
-	}
-	//dev
-	self.tablero[this.Index].pieza = this;
-	self.tablero[this.Index].img = this.img;
-
-	this.Mover=function(posicion2){
-		this.tabMove(posicion2);//dev function
-
-		this.pos=posicion2;
-		this.Index=Analizer.obtener_casilla(this.pos);
-		this.enroque=false;
-	}
-}
-var Reina=function(posicion,color,self){
-	var pieza = new Pieza(['0,1','0,-1','1,0','-1,0','1,1','-1,1','1,-1','-1,-1'],posicion,color,'Reina',self);
-	$.extend(this,pieza);
-
-	this.solido=true;
-	this.longMov=8;
-	if(color=='blanco'){
-		this.img='url("imagenes/reinablanca.png")';
-	}else if(color=='negro'){
-		this.img='url("imagenes/reinanegra.png")';	
-	}else{
-		alert('Error al elejir color');
-	}
-	
-	//dev
-	self.tablero[this.Index].pieza = this;
-	self.tablero[this.Index].img = this.img;
-}
-var Rey=function(posicion,color,self,enroque){
-	var pieza = new Pieza(['0,1','0,-1','1,0','-1,0','1,1','-1,1','1,-1','-1,-1'],posicion,color,'Reina',self);
-	$.extend(this,pieza);
-
-	//esto es otra forma para hacer el enroque
-	this.enroqueMov=['0,3','0,-4'];
-	this.piezaEnroque=Array();
-	this.solido=true;
-	this.longMov=2;
-	this.enroque=enroque;
-	//esto es para diferenciar las piezas
-	this.tipo='Rey';
-	if(color=='blanco'){
-		this.img='url("imagenes/reyblanco.png")';
-		this.enroqueCorto='H,1';
-		this.enroqueLargo='A,1';
-		this.enroqueLargoPos='C,1';
-		this.enroqueCortoPos='G,1';
-		this.emptyLargo=['-3,0','-2,0','-1,0'];
-		this.emptyCorto=['1,0','2,0'];
-
-	}else if(color=='negro'){
-		this.img='url("imagenes/reynegro.png")';
-		this.enroqueCorto='H,8';
-		this.enroqueLargo='A,8';
-		this.enroqueLargoPos='C,8';
-		this.enroqueCortoPos='G,8';
-		this.emptyLargo=['-1,0','-2,0','-3,0'];
-		this.emptyCorto=['1,0','2,0'];
-	}else{
-		alert('Error al elejir color');
-	}
-
-	//dev
-	self.tablero[this.Index].pieza = this;
-	self.tablero[this.Index].img = this.img;
-
-	this.Mover=function(posicion2){
-		this.tabMove(posicion2);//dev function
-
-		if(posicion2==this.enroqueLargoPos)
-		{
-			console.log('enroque largo!');
-			
-			var pasotorre=this.piezaEnroque[1];
-			var posicion=pasotorre.pos.split(',');
-			var anterior=Analizer.obtener_casilla(pasotorre.pos);
-			var movi=[3,0];
-			var x= Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+parseInt(movi[0]));
-			var y=parseInt(posicion[1])+parseInt(movi[1]);
-				//obtengo el index con el x e i
-			var lugar=x+','+y;
-
-			$('#cuadrado'+anterior).css('background-image','');
-			pasotorre.Mover(lugar);
-			
-			pasotorre.Dibujar();
-
-		}else if(posicion2==this.enroqueCortoPos)
-		{
-			console.log('enroque corto!');
-			var pasotorre=this.piezaEnroque[0];
-			var posicion=pasotorre.pos.split(',');
-			var anterior=obtener_casilla(pasotorre.pos);
-			var movi=[-2,0];
-			var x= Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+parseInt(movi[0]));
-			var y=parseInt(posicion[1])+parseInt(movi[1]);
-				//obtengo el index con el x e i
-			var lugar=x+','+y;
-
-			$('#cuadrado'+anterior).css('background-image','');
-			pasotorre.Mover(lugar);
-			
-			pasotorre.Dibujar();
-		}else
-		{
-			console.log('diff:'+posicion2);
-		}
-		this.pos=posicion2;
-		this.Index=Analizer.obtener_casilla(this.pos);
-		this.enroque=false;
-
-		
-	}
-	this.Morir=function(){
-		this.estado='muerto';
-		this.Index='0';
-		this.pos='';
-	}
-	this.Jaque=function(paramIndex){
-		var jaque=false;
-		for(var i=0;i<arrayObjetos.length;i++)
-		{
-			comprovarPosibles(self.arrayObjetos[i]);
-		}
-		if($('#cuadrado'+paramIndex).attr('rojo')=='true'){
-			alert('jaque');
-			jaque=true;
-		}
-		return jaque;
-
-	}	
-}
-/*FIN DE LA DECLARACION DE PIEZAS*/
 
 /*
 *==============================================================
 *CLASE TABLERO PARA TENER TODAS LAS TAREAS EN UN SOLO OBJETO ==
 *==============================================================
 */
-var Tablero = function(container){
+var Tablero = function(){
 	//variables
 	//contiene una imagen para moverla
 	var imagen='';
@@ -313,46 +34,33 @@ var Tablero = function(container){
 
 	this.arrayPeones=[];
 	this.arrayObjetos=[];
-	this.contenedor = $(container);
+	this.contenedor;
 
 	//para analisar todo solo en abstracto
 	this.tablero = [];
-	
-	//guardo las fichas para crearlas aca
-	this.piezas = {
-		'Caballo':Caballo,
-		'Rey':Rey,
-		'Reina':Reina,
-		'Alfil':Alfil,
-		'Torre':Torre,
-		'Peon':Peon
-	};
-
-	//CARGO EL EVENTO PARA LAS FICHAS 
-	var conflictThis = this;
-	$(document).on('click','.casillero',function(){
+	//for test
+	for(var i = 1; i < 65 ; i++){	
 		
-		//obtengo posiciones del casillero clickeado
-		var temp=Analizer.obtener_posicion($(this).index()+1);
+	}
 
-		//carga el casillero clickeado en el cuadro de dialogo
-		$('#dialog p').html(temp);
-		//abre el cuadro de dialogo
-		$( "#dialog" ).dialog();
+	this.init = function(container){
+		this.contenedor = $(container);
+		//CARGO EL EVENTO PARA LAS FICHAS 
+		var conflictThis = this;
+		$(document).on('click','.casillero',function(){
+			
+			//obtengo posiciones del casillero clickeado
+			var temp=Analizer.obtener_posicion($(this).index()+1);
 
-			conflictThis.mover($(this).index()+1,$(this).css('background-image'));
-	});
+			//carga el casillero clickeado en el cuadro de dialogo
+			$('#dialog p').html(temp);
+			//abre el cuadro de dialogo
+			$( "#dialog" ).dialog();
 
-	this.init = function(){
-		//for analize the data whithout graph
-		for(var i = 1; i < 65 ; i++){	
-			this.tablero[i] = {
-				pieza:null,
-				rojo:false,
-				img:null
-			};	
-		}
-	};
+				conflictThis.mover($(this).index()+1,$(this).css('background-image'));
+		});
+
+	}
 
 	this.crear_divs = function (){
 
@@ -402,7 +110,7 @@ var Tablero = function(container){
 
 				this.comprovarPosibles(temp);
 				$('#cuadrado'+anterior).css('background-color','rgba(0,255,0,0.5)');
-
+				
 			}
 			
 		}else if($('#cuadrado'+index).attr('rojo')=='true')
@@ -412,7 +120,7 @@ var Tablero = function(container){
 			temp2=this.comprobarPieza(index);
 			
 			if(temp2){
-				temp2.Morir();
+			temp2.Morir();
 			}
 			temp.Mover(Analizer.obtener_posicion(index));	
 			$('.casillero').css('background-color','');
@@ -433,18 +141,15 @@ var Tablero = function(container){
 	//comprueba que fichas hay en el index determinado
 	this.comprobarPieza = function (index){
 		var ficha;
-
-		if(index && (index > 0 && index < 65)){
-			ficha = this.tablero[index].pieza;
+		for(var i=0;i<this.arrayObjetos.length;i++){
+			if(index==this.arrayObjetos[i].Index){ficha=this.arrayObjetos[i];}
 		}
-
 		return ficha;
 	}
 		
 	//coloreo los movimientos posibles
 	//recive como parametro lapieza clickeada
 	//devuelvo array con todas las posiciones posibles en texto
-	//TODO: mejorar funcion para optimizarla y que sea mas entendible
 	this.comprovarPosibles = function (objeto){
 		
 		var arrayPosiblesTexto = [];//para cargar los movimientos en texto
@@ -622,7 +327,6 @@ var Tablero = function(container){
 		que no hay piezas intermedias. 
 	*/
 	//como parametros pasa el rey y todos las fichas no peones son una variable global
-	//TODO mejorar esta funcion para que sea mas entendible
 	this.enroquePosible = function (rey){
 		var retorno=Array(false,false);
 		var enroque={};
@@ -818,7 +522,7 @@ var Tablero = function(container){
  					}
  					console.log("index: "+piezaIndex+" nueva pieza: "+tipo+" pos --> "+pos );
  					
- 					var pieza = new this.piezas[tipo](pos,color,this);
+ 					var pieza = new window[tipo](pos,color);
  					
  					if(tipo == "Peon"){
  					
@@ -1120,102 +824,4 @@ var Tablero = function(container){
 	}
 }	
 
-
-/*
-*==================================================================
-*OBJETO PARA ANALIZAR POSICIONES Y DEMAS SITUACIONES DEL JUEGO ====
-*==================================================================
-*/
-var PositionAnalisis = function(){
-	//transformo x a letra
-	this.LetraX =function (para){
-		var letra;
-		if(para==1){letra='A';}
-		else if(para==2){letra='B';}
-		else if(para==3){letra='C';}
-		else if(para==4){letra='D';}
-		else if(para==5){letra='E';}
-		else if(para==6){letra='F';}
-		else if(para==7){letra='G';}
-		else if(para==8){letra='H';}
-		else{
-			letra=false;
-		}
-		return letra;
-	}
-	this.NumX = function (letra){
-		var num;
-		if(letra=='A'){num='1';}
-		if(letra=='B'){num='2';}
-		if(letra=='C'){num='3';}
-		if(letra=='D'){num='4';}
-		if(letra=='E'){num='5';}
-		if(letra=='F'){num='6';}
-		if(letra=='G'){num='7';}
-		if(letra=='H'){num='8';}
-		return num;
-	}
-	//obtengo la altura con el index del click como parametro
-	this.obtener_altura = function (index){
-		var altura;
-		for(var i=0;i<8;i++){
-			if(index >=(1+8*i) && index <=(8+8*i)){altura= 8-i;}
-		}
-		return altura;
-	}
-	//obtengo la letra con el index del click como parametro
-	this.obtener_letra = function (index){
-		var letra;
-		for(var i=0;i<8;i++){
-
-			if(((index+i)/8)-parseInt((index+i)/8)==0){
-
-				if(i==7){letra='A';}
-				if(i==6){letra='B';}
-				if(i==5){letra='C';}
-				if(i==4){letra='D';}
-				if(i==3){letra='E';}
-				if(i==2){letra='F';}
-				if(i==1){letra='G';}
-				if(i==0){letra='H';}
-			}
-		}
-		return letra;
-	}
-	//con x e y como letra y numero obtengo el index del casillero
-	this.obtener_casillero = function (x,y){
-		var paso,resu;	
-		paso = this.NumX(x);
-		resu=parseInt(paso)+8*(8-y);
-		return resu;
-	}
-
-	/*con el index del casillero clickeado obtengo la letra y el numero*/
-	this.obtener_posicion = function (index){
-		var x,y;
-		//obtengo la letra con el index
-		x=this.obtener_letra(index);
-		//obtengo la altura con el index
-		y=this.obtener_altura(index);
-		var resp=x+','+y;
-		return resp;
-	}
-	//devuelve el index aparentemente
-	this.obtener_casilla = function (pos){
-		var partes=pos.split(',');
-		var fin=this.obtener_casillero(partes[0],partes[1]);
-		return fin;
-	}
-}
-Analizer = new PositionAnalisis();
-
-
-//parte de prueba
-var tab;
-$(document).on("ready",function (e){
-	tab = new Tablero('#contenedor');
-	tab.init();
-	tab.crear_divs();
-	tab.graficarFichas();
-	tab.getpgn("http://localhost/ajedrez/pgn.php");
-});
+module.exports = new Tablero();
