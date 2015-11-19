@@ -12,7 +12,7 @@ var Pieza = function (movimientos,posicion,color, tipo, self){
 	this.Index=Analizer.obtener_casilla(this.pos);
 	this.color=color;
 	this.tipo=tipo;
-
+	this.uniq = 'id' + (new Date()).getTime();
 	this.Dibujar= function(){
 		
 		$('#cuadrado'+this.Index).css('background-image',this.img);
@@ -24,6 +24,7 @@ var Pieza = function (movimientos,posicion,color, tipo, self){
 		this.Index=Analizer.obtener_casilla(this.pos);
 	}
 	this.Morir=function(){
+		console.log("murio: "+this.uniq);
 		this.estado='muerto';
 		this.Index='0';
 		this.pos='';
@@ -294,8 +295,9 @@ var Rey=function(posicion,color,self,enroque){
 */
 var Tablero = function(container){
 	//variables
-	//contiene una imagen para moverla
-	var imagen='';
+	
+	this.selectPiece = null;//remplazo de la variable iagen
+	
 	//el index clickeado cuando la imagen esta vacia
 	var anterior='';
 	//
@@ -349,9 +351,13 @@ var Tablero = function(container){
 			this.tablero[i] = {
 				pieza:null,
 				rojo:false,
+				peonpaso:null,
 				img:null
 			};	
 		}
+		console.log("======init====");
+		console.log("tablero.length: "+this.tablero.length);
+
 	};
 
 	this.crear_divs = function (){
@@ -373,15 +379,20 @@ var Tablero = function(container){
 	//para graficar las piezas
 	this.graficarFichas = function(){
 	
-		for( var i=0; i<this.arrayObjetos.length;i++){
-			if(typeof this.arrayObjetos[i].Dibujar == "undefined"){
-				console.log(this.arrayObjetos[i]);
-			}else{
-				this.arrayObjetos[i].Dibujar();
-			}
+		if(this.tablero.length == 65){
+
+			for(var i = 1 ; i < this.tablero.length ; i++){
+
+				var thisCasillero = this.tablero[i],
+					imagenCasillero = thisCasillero.img ? thisCasillero.img : '';
+
+				$('#cuadrado'+i).css('background-image', imagenCasillero);
+				$('#cuadrado'+i).prop('rojo',thisCasillero.rojo);
+			}	
 		}
+	};
+	
 		
-	}
 	//funciones para el movimiento dentro de el objeto tablero
 	//TODO:no me queda claro que hace esta funcion, estaria faltando una mejor aclaracion comentada
 	/*
@@ -390,40 +401,38 @@ var Tablero = function(container){
 	*/
 	this.mover = function (index,entrada){
 		//comprueba que la variable imagen este vacia o no
-		if(this.imagen=='' || this.imagen=='none')
-		{
-			//guarda la this.imagen y el index clickeado
-			this.imagen=entrada;
-			anterior=index;
-			//si la this.imagen no esta vacia
-			if(this.imagen!='none'){
-				//cargo temp con la pieza clickeada
-				temp=this.comprobarPieza(index);
+		if(this.selectPiece == null){
+			//guarda la pieza que clickie
+			this.selectPiece = this.comprobarPieza(index);
+		
+			if(this.selectPiece != null){
+				//compruebo la pieza
+				this.comprovarPosibles(this.selectPiece);
 
-				this.comprovarPosibles(temp);
-				$('#cuadrado'+anterior).css('background-color','rgba(0,255,0,0.5)');
-
+				$('#cuadrado'+index).css('background-color','rgba(0,255,0,0.5)');
 			}
+		}else if(this.tablero[index].rojo == true){
 			
-		}else if($('#cuadrado'+index).attr('rojo')=='true')
-		{
-			
-			$('#cuadrado'+anterior).css('background-image','');
+			$('#cuadrado'+this.selectPiece.Index).css('background-image','');
+						
 			temp2=this.comprobarPieza(index);
 			
 			if(temp2){
 				temp2.Morir();
 			}
-			temp.Mover(Analizer.obtener_posicion(index));	
+			this.selectPiece.Mover(Analizer.obtener_posicion(index));	
 			$('.casillero').css('background-color','');
 			$('.casillero').attr('rojo','');
-			this.imagen='';
-			temp.Dibujar();
+			this.removeRojoFromTablero();
+			this.selectPiece.Dibujar();//esto tengo que arreglarlo para el metodo grafico
+			this.selectPiece = null;
 		}else{
 			$('.casillero').css('background-color','');
 			$('.casillero').attr('rojo','');
-			this.imagen='';
+			this.removeRojoFromTablero();
+			this.selectPiece = null;
 		}
+
 	}
 
 	/*
@@ -453,6 +462,7 @@ var Tablero = function(container){
 		var color=objeto.color;
 		//pongo todos los casilleros en blanco
 		$('.casillero').css('background-color','');
+		//this.removeRojoFromTablero();
 		//guardo el numero de movimientos posibles
 		var limite= objeto.movposibles;
 		//la ubicacion o index del objeto o fucha
@@ -487,14 +497,16 @@ var Tablero = function(container){
 									pieza=this.comprobarPieza(index);
 									if(pieza){
 
-									colicion=true;	
-									$('#cuadrado'+index).css('background-color','');
-									
+										colicion=true;	
+										$('#cuadrado'+index).css('background-color','');
+										this.tablero[index].rojo = false;
 									}else{
-									$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
-									$('#cuadrado'+index).attr('rojo','true');
-									
+										$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+										$('#cuadrado'+index).attr('rojo','true');
+										this.tablero[index].rojo = true;
+
 									}
+									
 									h++;
 								}
 						}
@@ -509,11 +521,14 @@ var Tablero = function(container){
 						{
 							if (pieza.color==objeto.color){
 								$('#cuadrado'+index).css('background-color','');
+								this.tablero[index].rojo = false;
+
 							}else{	
 								arrayPosiblesTexto.push(x+y);
 								console.log("Pieza especifica: "+x+y);
 								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 							 	$('#cuadrado'+index).attr('rojo','true');
+								this.tablero[index].rojo = true;
 							}
 						}else
 						{ 
@@ -528,6 +543,7 @@ var Tablero = function(container){
 
 									$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 								 	$('#cuadrado'+index).attr('rojo','true');
+								 	this.tablero[index].rojo = true;
 									$('#cuadrado'+index).attr('peonpaso',this.arrayPeones[k].pospaso);
 								}
 							}
@@ -555,15 +571,18 @@ var Tablero = function(container){
 								colicion=true;	
 								if (pieza.color==objeto.color){
 									$('#cuadrado'+index).css('background-color','');
+									this.tablero[index].rojo = false;
 								}else{
 									arrayPosiblesTexto.push(x+y);
 									$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 									$('#cuadrado'+index).attr('rojo','true');
+									this.tablero[index].rojo = true;
 								}
 							}else{
 								arrayPosiblesTexto.push(x+y);
 								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 								$('#cuadrado'+index).attr('rojo','true');
+								this.tablero[index].rojo = true;
 							}
 						}
 						h++;
@@ -582,6 +601,7 @@ var Tablero = function(container){
 								var index=enroque.Index[m];
 								$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 								$('#cuadrado'+index).attr('rojo','true');
+								this.tablero[index].rojo = true;
 								
 								console.log('enroque seudo posible');
 							}
@@ -599,13 +619,17 @@ var Tablero = function(container){
 					if(pieza){
 						if (pieza.color==objeto.color){
 							$('#cuadrado'+index).css('background-color','');
+							this.tablero[index].rojo = false;
 						}else{
-							$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); $('#cuadrado'+index).attr('rojo','true');
+							$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
+							$('#cuadrado'+index).attr('rojo','true');
+							this.tablero[index].rojo = true;
 						}
 					}else{
 
 						$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 						$('#cuadrado'+index).attr('rojo','true');
+						this.tablero[index].rojo = true;
 					}
 				}
 			}
@@ -614,9 +638,166 @@ var Tablero = function(container){
 		
 	}
 	//TODO:comprobarposibles 2, para comprobar solo en analisis y mejorar la 1
-	this.comprobarposibles2 = function(){
+	/*
+		ES NECESARIO MEJORAR ESTA FUNCION PORQ NO SE ENTIENDE QUE ESTA HACIENDO CADA COSA
+	*/
+	//TODO: en pasos y detalles
+	//TODO1: funcion aparte para gestionar coliciones al estirar los movimientos
+	//TODO2:
+	this.comprovarPosibles2 = function(pieza){
+		var arrayPosiblesTexto = [],//para cargar los movimientos en texto
+			color=pieza.color,//guardo el color de la ficha
+			limite= pieza.movposibles,//guardo el numero de movimientos posibles
+			ubi=pieza.Index,//la ubicacion o index del pieza o ficha
+			posicion=pieza.pos.split(',');//separa la posicion en letra y altura
 
-	},
+		
+		//estiro el movimiento para los limites
+		for(var i = 0 ; i < limite ; i++){
+			//separo los movimientos posibles en x e y
+			var movi = pieza.mov[i].split(','),//los movimientos son vectores ej: '0,1'
+				x = Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+parseInt(movi[0])),
+				y = parseInt(posicion[1])+parseInt(movi[1]);
+			if(x){
+				//separa al peon al inicio
+				if(pieza.peon){
+					if(i==0||i==3){
+						//el movimiento 0 es el de avanzar
+						if(i==0){
+							//paso x, y ỳ el pieza
+							//chequeo si hay alguna ficha del miso color
+							//y lo colorea
+							this.chequearSolido(x,y,pieza);
+							var h=1;
+							var colicion=false;
+							//estira el movimiento hasta una colicion o hasta el longmov
+							while(h < pieza.longMov && colicion==false){
+									x = Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+h*parseInt(movi[0]));
+									y = parseInt(posicion[1])+h*parseInt(movi[1]);
+									arrayPosiblesTexto.push(x+y);
+									var index = Analizer.obtener_casillero(x,y);
+									currentPieza = this.comprobarPieza(index);
+									if(currentPieza){
+										colicion=true;
+										this.tablero[index].rojo = false;	
+									
+									}else{
+										this.tablero[index].rojo = true;	
+									}
+									h++;
+								}
+						}
+					}else{// si el i es 2 o 1| son los movimientos de ataque
+						//obtengo el index con el x e i
+
+						var index = Analizer.obtener_casillero(x,y);
+						//compruebo si existe una pieza en ese index
+						currentPieza = this.comprobarPieza(index);
+						//si hay una piez lo colorea
+						if(currentPieza)
+						{
+							if (currentPieza.color==pieza.color){
+								this.tablero[index].rojo = false;
+
+							}else{	
+								arrayPosiblesTexto.push(x+y);
+								this.tablero[index].rojo = true;
+							}
+						}else
+						{ 
+							//si no hay una ficha compruebo para todos los peones
+							//si la posicion de paso es igual al index colorea la posicion
+							//esto es para el PEON AL PASO
+							for(var k=0;k<this.arrayPeones.length;k++)
+							{
+								if(index==Analizer.obtener_casilla(this.arrayPeones[k].pospaso))
+								{
+									arrayPosiblesTexto.push(x+y);
+									this.tablero[index].rojo = true;
+									this.tablero[index].peonpaso = this.arrayPeones[k].pospaso;
+								}
+							}
+						}
+
+					}
+				}else if(pieza.solido){//si no es peon y es solido
+					//comprueba y colorea las fichas
+					this.chequearSolido(x,y,pieza);
+					var h = 1;
+					var colicion = false;
+					
+					//estira el movimiento en caso de ser alfil
+					while(h < pieza.longMov && colicion==false){
+					
+						x = Analizer.LetraX(parseInt(Analizer.NumX(posicion[0]))+h*parseInt(movi[0]));
+						y = parseInt(posicion[1])+h*parseInt(movi[1]);
+						
+						var index = Analizer.obtener_casillero(x,y),
+							currentPieza = this.comprobarPieza(index);
+						
+						if(index && index>=1 && index <= 64){
+							//arrayPosiblesTexto.push(index);
+							if(currentPieza){
+								colicion=true;	
+								if (currentPieza.color==pieza.color){
+									this.tablero[index].rojo = false;
+								}else{
+									arrayPosiblesTexto.push(x+y);
+									this.tablero[index].rojo = true;
+								}
+							}else{
+								arrayPosiblesTexto.push(x+y);
+								this.tablero[index].rojo = true;
+							}
+						}
+						h++;
+					}
+					//esto es de prueba para el enroque
+					if(pieza.enroque == true && pieza.tipo == 'Rey')
+					{
+						//console.log( 'enroque posible');
+						var enroque=this.enroquePosible(pieza);
+						for(var m=0;m<enroque.piezas.length;m++)
+						{
+							if(enroque.piezas[m])
+							{
+
+
+								var index=enroque.Index[m];
+								this.tablero[index].rojo = true;
+								
+								console.log('enroque pseudo posible');
+							}
+						}
+							
+						
+					}
+
+				}else{//si no hay ninguna pieza
+					//colorea las posiciones de ataque
+					//arrayPosiblesTexto.push(x+y);
+					var index = Analizer.obtener_casillero(x,y);
+					currentPieza = this.comprobarPieza(index);
+					arrayPosiblesTexto.push(x+y);
+					if(currentPieza){
+						if (currentPieza.color==pieza.color){
+							this.tablero[index].rojo = false;
+						}else{
+							this.tablero[index].rojo = true;
+						}
+					}else{
+						this.tablero[index].rojo = true;
+					}
+				}
+			}
+		}
+		return arrayPosiblesTexto;
+	};
+	this.removeRojoFromTablero = function(){
+		for(var i = 1 ;i<this.tablero.length;i++){
+			this.tablero[i].rojo = false;
+		}
+	};
 	/*
 		para el enroque voy crear una funcion que devuelva el objeto torre y comprube
 		que no hay piezas intermedias. 
@@ -709,9 +890,11 @@ var Tablero = function(container){
 	//recibo la posicion x, la "Y" y el objeto
 	this.chequearSolido = function (x,y,objeto){
 		//ejecuto hasta la cantidad de movimientos posibles
-		for(var i=0;i<objeto.longMov;i++){
+		for(var i = 0; i <objeto.longMov;i++){
 			//obtengo el index del casillero con posicion letra-numero
-			var index=Analizer.obtener_casillero(Analizer.LetraX(Analizer.NumX(x)+i),y+i);
+			var index = Analizer.obtener_casillero(Analizer.LetraX(Analizer.NumX(x)+i),y+i);
+			if(!index)continue;//TODO:this is a little bugfix, need to improve
+
 			//comprueba si hay una pieza en el index determinado
 			pieza=this.comprobarPieza(index);
 			//si la ficha y es del color contrario colorea el cuadrado
@@ -719,13 +902,17 @@ var Tablero = function(container){
 			if(pieza){
 				if (pieza.color==objeto.color){
 					$('#cuadrado'+index).css('background-color','');
+					this.tablero[index].rojo = false;
 				}else{
 					$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)'); 
 					$('#cuadrado'+index).attr('rojo','true');
+					this.tablero[index].rojo = true;
 				}
 			}else{
 				$('#cuadrado'+index).css('background-color','rgba(255,0,0,0.5)');
 				$('#cuadrado'+index).attr('rojo','true');
+				console.log(index);
+				this.tablero[index].rojo = true;
 			}
 		}
 	}
@@ -750,6 +937,7 @@ var Tablero = function(container){
 
 	//function to read and graph fen from pgn
 	this.readfen = function(fullfen){
+		this.init();
 		if( typeof fen == "undefined"){
 			fullfen = this.pgn.fen;
 		}
@@ -836,42 +1024,42 @@ var Tablero = function(container){
 		}
 	},
 	//TODO: funcion para procesar todos los datos a fen, primero uso la cadena principal luego lo voy a hacer con las variantes
+	//con el cambio para el objeto funciona mucho mejor, igualmente es necesario pulir todo
+	//TODO: para el procesamiento usar un setInterval para chequiar cuando el proceso este terminado
 	this.processToFen = function(){
 
 		var allFen = [this.takeFen()],
 			controlVar = true,
 			thisPaso = this;
 
-		for(var i = 0; i<10 ; i++){
+		while(thisPaso.nextPgnMove()!=0 ){
 
-			setTimeout(function(){
-				
-				controlVar = thisPaso.nextPgnMove();
-
-				var fenLine = thisPaso.takeFen();
-				
-				allFen.push(fenLine);
-				
-				console.log("procesando...");
-
-			},500);
-		
+			var fenLine = thisPaso.takeFen();
+			
+			allFen.push(fenLine);
+			
+			console.log("procesando...");
+			
 		}
 		
 		console.log("finish----------------");
 
 		this.allFen = allFen;
 
-		this.readfen(this.allFen[0]);//cargo la posicion inicial
 
 		return allFen;
 	},
+	this.loadStart = function(){
+		this.procesPgn.indexMove = 0;
+		this.readfen(this.allFen[0]);//cargo la posicion inicial
+		console.log("finish REAL");
+	};
 	this.nextMove = function(){
 		if(this.currentFenIndex < this.allFen.length){
 			this.currentFenIndex++;
 			this.readfen(this.allFen[this.currentFenIndex]);
 		}
-	},
+	};
 	this.prevMove = function(){
 		if(this.currentFenIndex > 0){
 			this.currentFenIndex--;
@@ -1071,7 +1259,7 @@ var Tablero = function(container){
 		for( var j = 0; j < this.arrayObjetos.length; j++){
 			var piezaObj = this.arrayObjetos[j];
 			if(!graficado && piezaObj.color== color && (piezaObj.tipo == tipoPieza || tipoPieza=="all")){
-				var posibles = this.comprovarPosibles(piezaObj);
+				var posibles = this.comprovarPosibles2(piezaObj);
 				console.log(posibles);
 				for(var i in posibles){
 					if(posibles[i] == casilla+numero){
@@ -1091,7 +1279,7 @@ var Tablero = function(container){
 						$('.casillero').css('background-color','');
 						
 						$('.casillero').attr('rojo','');
-						
+						this.removeRojoFromTablero();
 						//mejorar movimientos
 						graficado = true;
 						break;
